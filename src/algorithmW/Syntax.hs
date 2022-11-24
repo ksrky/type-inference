@@ -7,14 +7,14 @@ type Name = String
 
 -- | Term
 data Term
-        = TmLit TmLit
+        = TmLit Lit
         | TmVar Name
         | TmApp Term Term
         | TmAbs Name Term
         | TmLet Name Term Term
         deriving (Eq, Show)
 
-newtype TmLit = IntL Int deriving (Eq, Show)
+data Lit = LUnit deriving (Eq, Show)
 
 -- | Type
 data Type
@@ -29,7 +29,7 @@ type Sigma = Type
 
 type Uniq = Int
 
-data TyCon = IntT deriving (Eq, Show)
+data TyCon = TUnit deriving (Eq, Show)
 
 -- | Environment
 type Env = M.Map Name Sigma

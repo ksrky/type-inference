@@ -66,4 +66,4 @@ lookupEnv x = do
         env <- ask
         case M.lookup x env of
                 Just ty -> return ty
-                Nothing -> fail $ "Not in scope " ++ x
+                Nothing -> fail $ "Not in scope '" ++ x ++ "'"

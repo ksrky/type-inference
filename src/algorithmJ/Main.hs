@@ -1,6 +1,8 @@
 module Main where
 
 import Control.Monad
+import Prettyprinter
+import Prettyprinter.Render.Text
 
 import Infer
 import Syntax
@@ -8,7 +10,7 @@ import Syntax
 main :: IO ()
 main = forM_ tests $ \t -> do
         ty <- inferType t
-        print ty
+        putDoc $ pretty ty <> line
 
 tests :: [Term]
 tests =

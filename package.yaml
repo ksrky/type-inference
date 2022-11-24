@@ -23,6 +23,7 @@ dependencies:
   - base >= 4.7 && < 5
   - containers
   - mtl
+  - prettyprinter
   - safe-exceptions
   - transformers
 
@@ -53,6 +54,15 @@ executables:
   algorithmM:
     main: Main.hs
     source-dirs: src/algorithmM
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - type-inference
+  algorithmJ:
+    main: Main.hs
+    source-dirs: src/algorithmJ
     ghc-options:
       - -threaded
       - -rtsopts

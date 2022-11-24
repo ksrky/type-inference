@@ -13,7 +13,7 @@ inferType t = fst <$> runInfer (inferSigma t) emptyEnv 0
 
 -- | Infernece of Tau
 inferTau :: MonadFail m => Term -> Infer m (Subst, Tau)
-inferTau (TmLit IntL{}) = return (emptySubst, TyCon IntT)
+inferTau (TmLit LUnit) = return (emptySubst, TyCon TUnit)
 inferTau (TmVar n) = do
         sigma <- lookupEnv n
         tau <- instantiate sigma
@@ -25,14 +25,14 @@ inferTau (TmApp fun arg) = do
         s3 <- unify (apply s2 fun_ty) (TyFun arg_ty res_ty)
         return (s3 `compose` s2 `compose` s1, apply s3 res_ty)
 inferTau (TmAbs var body) = do
-        tv <- newTyVar
-        (s1, body_ty) <- extendEnv var tv (inferTau body)
-        return (s1, TyFun (apply s1 tv) body_ty)
-inferTau (TmLet n rhs body) = do
+        var_ty <- newTyVar
+        (s1, body_ty) <- extendEnv var var_ty (inferTau body)
+        return (s1, TyFun (apply s1 var_ty) body_ty)
+inferTau (TmLet var rhs body) = do
         (s1, var_ty) <- inferTau rhs
         (s2, body_ty) <- applyEnv s1 $ do
                 var_sigma <- generalize var_ty
-                extendEnv n var_sigma (inferTau body)
+                extendEnv var var_sigma (inferTau body)
         return (s2 `compose` s1, body_ty)
 
 -- | Inference of Sigma

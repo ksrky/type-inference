@@ -19,7 +19,7 @@ inferTau t = do
         return $ apply s exp_ty
 
 checkTau :: MonadFail m => Term -> Tau -> Infer m Subst
-checkTau (TmLit IntL{}) exp_ty = unify exp_ty (TyCon IntT)
+checkTau (TmLit LUnit) exp_ty = unify exp_ty (TyCon TUnit)
 checkTau (TmVar n) exp_ty = do
         sigma <- lookupEnv n
         tau <- instantiate sigma

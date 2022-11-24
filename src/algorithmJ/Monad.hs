@@ -1,12 +1,16 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections #-}
 
 module Monad where
 
 import Control.Monad.Reader
 import Control.Monad.State.Class
+import Data.IORef
 import qualified Data.Map.Strict as M
+import Prettyprinter
+import Prettyprinter.Render.String
 
 import Subst
 import Syntax
@@ -44,12 +48,37 @@ instance Monad m => MonadReader Env (Infer m) where
         ask = Infer (curry return)
         local f (Infer m) = Infer (m . f)
 
+failInf :: MonadFail m => Doc ann -> Infer m a
+failInf doc = fail $ renderString $ layoutPretty defaultLayoutOptions doc
+
+-- | IORef
+newInfRef :: MonadIO m => a -> Infer m (IORef a)
+newInfRef v = lift (liftIO $ newIORef v)
+
+readInfRef :: MonadIO m => IORef a -> Infer m a
+readInfRef r = lift (liftIO $ readIORef r)
+
+writeInfRef :: MonadIO m => IORef a -> a -> Infer m ()
+writeInfRef r v = lift (liftIO $ writeIORef r v)
+
 -- | fresh name generation
-newTyVar :: Monad m => Infer m Type
-newTyVar = do
+newTyVar :: MonadIO m => Infer m Type
+newTyVar = TyMeta <$> newMetaTv
+
+newMetaTv :: MonadIO m => Infer m MetaTv
+newMetaTv = MetaTv <$> newUniq <*> newInfRef Nothing
+
+readMetaTv :: MonadIO m => MetaTv -> Infer m (Maybe Tau)
+readMetaTv (MetaTv _ ref) = readInfRef ref
+
+writeMetaTv :: MonadIO m => MetaTv -> Tau -> Infer m ()
+writeMetaTv (MetaTv _ ref) ty = writeInfRef ref (Just ty)
+
+newUniq :: Monad m => Infer m Uniq
+newUniq = do
         u <- get
         put (u + 1)
-        return $ TyVar u
+        return u
 
 -- | Environment management
 emptyEnv :: Env
@@ -66,4 +95,4 @@ lookupEnv x = do
         env <- ask
         case M.lookup x env of
                 Just ty -> return ty
-                Nothing -> fail $ "Not in scope '" ++ x ++ "'"
+                Nothing -> failInf $ hsep ["Not in scope ", squotes $ pretty x]
