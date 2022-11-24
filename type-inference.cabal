@@ -1,0 +1,80 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.4.
+--
+-- see: https://github.com/sol/hpack
+
+name:           type-inference
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/ksrky/type-inference#readme>
+homepage:       https://github.com/ksrky/type-inference#readme
+bug-reports:    https://github.com/ksrky/type-inference/issues
+author:         ksrk
+maintainer:     example@example.com
+copyright:      2022 ksrk
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    CHANGELOG.md
+
+source-repository head
+  type: git
+  location: https://github.com/ksrky/type-inference
+
+library
+  other-modules:
+      Paths_type_inference
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-name-shadowing
+  build-depends:
+      base >=4.7 && <5
+    , containers
+    , mtl
+    , safe-exceptions
+    , transformers
+  default-language: Haskell2010
+
+executable algorithmM
+  main-is: Main.hs
+  other-modules:
+      Infer
+      Monad
+      Subst
+      Syntax
+      Unify
+      Paths_type_inference
+  hs-source-dirs:
+      src/algorithmM
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-name-shadowing -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , containers
+    , mtl
+    , safe-exceptions
+    , transformers
+    , type-inference
+  default-language: Haskell2010
+
+executable algorithmW
+  main-is: Main.hs
+  other-modules:
+      Infer
+      Monad
+      Subst
+      Syntax
+      Unify
+      Paths_type_inference
+  hs-source-dirs:
+      src/algorithmW
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-name-shadowing -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , containers
+    , mtl
+    , safe-exceptions
+    , transformers
+    , type-inference
+  default-language: Haskell2010
