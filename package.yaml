@@ -69,3 +69,12 @@ executables:
       - -with-rtsopts=-N
     dependencies:
       - type-inference
+  algorithmZ:
+    main: Main.hs
+    source-dirs: src/algorithmZ
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - type-inference

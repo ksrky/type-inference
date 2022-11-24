@@ -104,3 +104,26 @@ executable algorithmW
     , transformers
     , type-inference
   default-language: Haskell2010
+
+executable algorithmZ
+  main-is: Main.hs
+  other-modules:
+      Infer
+      Monad
+      Subst
+      Syntax
+      Unify
+      Utils
+      Paths_type_inference
+  hs-source-dirs:
+      src/algorithmZ
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-name-shadowing -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , containers
+    , mtl
+    , prettyprinter
+    , safe-exceptions
+    , transformers
+    , type-inference
+  default-language: Haskell2010
