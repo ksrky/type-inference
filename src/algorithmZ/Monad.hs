@@ -12,7 +12,6 @@ import qualified Data.Map.Strict as M
 import Prettyprinter
 import Prettyprinter.Render.String
 
-import Subst
 import Syntax
 
 -- | Inference monad
@@ -86,9 +85,6 @@ emptyEnv = M.empty
 
 extendEnv :: Monad m => Name -> Sigma -> Infer m a -> Infer m a
 extendEnv x ty = local (M.insert x ty)
-
-applyEnv :: Monad m => Subst -> Infer m a -> Infer m a
-applyEnv s = local $ M.map (apply s)
 
 lookupEnv :: MonadFail m => Name -> Infer m Sigma
 lookupEnv x = do

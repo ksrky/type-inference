@@ -12,7 +12,7 @@ import Syntax
 import Utils
 
 unify :: (MonadFail m, MonadIO m) => Tau -> Tau -> Infer m ()
-unify (TyVar n1) (TyVar n2) | n1 == n2 = return ()
+unify (TyVar tv1) (TyVar tv2) | tv1 == tv2 = return ()
 unify (TyCon tc1) (TyCon tc2) | tc1 == tc2 = return ()
 unify (TyFun arg1 res1) (TyFun arg2 res2) = do
         unify arg1 arg2

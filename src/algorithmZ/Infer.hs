@@ -10,7 +10,7 @@ import Unify
 import Utils
 
 inferType :: (MonadFail m, MonadIO m) => Term -> m Type
-inferType t = fst <$> runInfer (inferSigma t >>= zonkType) emptyEnv 0
+inferType t = fst <$> runInfer (inferSigma t) emptyEnv 0
 
 -- | Infernece of Tau
 inferTau :: (MonadFail m, MonadIO m) => Term -> Infer m Tau
@@ -46,10 +46,9 @@ inferSigma t = do
 
 -- | Generalization and Instantiation
 instantiate :: MonadIO m => Sigma -> Infer m Tau
-instantiate (TyAll ns ty) = do
-        ns' <- mapM (const newTyVar) ns
-        let s = newSubst ns ns'
-        return $ apply s ty
+instantiate (TyAll tvs tau) = do
+        tys <- mapM (const newTyVar) tvs
+        return $ subst tvs tys tau
 instantiate ty = return ty
 
 generalize :: MonadIO m => Tau -> Infer m Sigma
