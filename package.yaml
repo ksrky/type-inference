@@ -78,3 +78,12 @@ executables:
       - -with-rtsopts=-N
     dependencies:
       - type-inference
+  arbitrary-rank:
+    main: Main.hs
+    source-dirs: src/arbitrary-rank
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - type-inference
