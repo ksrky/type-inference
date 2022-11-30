@@ -14,66 +14,69 @@ import Prettyprinter.Render.String
 
 import Syntax
 
--- | Inference monad
-newtype Infer m a = Infer {runInfer :: Env -> Uniq -> m (a, Uniq)}
+-- | Tc monad
+newtype Tc m a = Tc {runTc :: Env -> Uniq -> m (a, Uniq)}
 
-instance Monad m => Functor (Infer m) where
-        fmap f (Infer m) = Infer $ \env uniq -> do
+instance Monad m => Functor (Tc m) where
+        fmap f (Tc m) = Tc $ \env uniq -> do
                 (x, uniq') <- m env uniq
                 return (f x, uniq')
 
-instance Monad m => Applicative (Infer m) where
-        pure x = Infer (\_ uniq -> return (x, uniq))
-        f <*> x = Infer $ \env uniq -> do
-                (f', uniq') <- runInfer f env uniq
-                runInfer (fmap f' x) env uniq'
+instance Monad m => Applicative (Tc m) where
+        pure x = Tc (\_ uniq -> return (x, uniq))
+        f <*> x = Tc $ \env uniq -> do
+                (f', uniq') <- runTc f env uniq
+                runTc (fmap f' x) env uniq'
 
-instance Monad m => Monad (Infer m) where
-        m >>= k = Infer $ \env uniq -> do
-                (v, uniq') <- runInfer m env uniq
-                runInfer (k v) env uniq'
+instance Monad m => Monad (Tc m) where
+        m >>= k = Tc $ \env uniq -> do
+                (v, uniq') <- runTc m env uniq
+                runTc (k v) env uniq'
 
-instance MonadFail m => MonadFail (Infer m) where
-        fail s = Infer $ \_ _ -> fail s
+instance MonadFail m => MonadFail (Tc m) where
+        fail s = Tc $ \_ _ -> fail s
 
-instance MonadTrans Infer where
-        lift m = Infer (\_ uniq -> (,uniq) <$> m)
+instance MonadTrans Tc where
+        lift m = Tc (\_ uniq -> (,uniq) <$> m)
 
-instance Monad m => MonadState Uniq (Infer m) where
-        get = Infer (\_ uniq -> return (uniq, uniq))
-        put uniq = Infer (\_ _ -> return ((), uniq))
+instance Monad m => MonadState Uniq (Tc m) where
+        get = Tc (\_ uniq -> return (uniq, uniq))
+        put uniq = Tc (\_ _ -> return ((), uniq))
 
-instance Monad m => MonadReader Env (Infer m) where
-        ask = Infer (curry return)
-        local f (Infer m) = Infer (m . f)
+instance Monad m => MonadReader Env (Tc m) where
+        ask = Tc (curry return)
+        local f (Tc m) = Tc (m . f)
 
-failInf :: MonadFail m => Doc ann -> Infer m a
-failInf doc = fail $ renderString $ layoutPretty defaultLayoutOptions doc
+failTc :: MonadFail m => Doc ann -> Tc m a
+failTc doc = fail $ renderString $ layoutPretty defaultLayoutOptions doc
 
 -- | IORef
-newInfRef :: MonadIO m => a -> Infer m (IORef a)
-newInfRef v = lift (liftIO $ newIORef v)
+newTcRef :: MonadIO m => a -> Tc m (IORef a)
+newTcRef v = lift (liftIO $ newIORef v)
 
-readInfRef :: MonadIO m => IORef a -> Infer m a
-readInfRef r = lift (liftIO $ readIORef r)
+readTcRef :: MonadIO m => IORef a -> Tc m a
+readTcRef r = lift (liftIO $ readIORef r)
 
-writeInfRef :: MonadIO m => IORef a -> a -> Infer m ()
-writeInfRef r v = lift (liftIO $ writeIORef r v)
+writeTcRef :: MonadIO m => IORef a -> a -> Tc m ()
+writeTcRef r v = lift (liftIO $ writeIORef r v)
 
--- | fresh name generation
-newTyVar :: MonadIO m => Infer m Type
+-- | type variable generation
+newTyVar :: MonadIO m => Tc m Type
 newTyVar = TyMeta <$> newMetaTv
 
-newMetaTv :: MonadIO m => Infer m MetaTv
-newMetaTv = MetaTv <$> newUniq <*> newInfRef Nothing
+newSkolemTyVar :: MonadIO m => TyVar -> Tc m TyVar
+newSkolemTyVar tv = SkolemTv (tyVarName tv) <$> newUniq
 
-readMetaTv :: MonadIO m => MetaTv -> Infer m (Maybe Tau)
-readMetaTv (MetaTv _ ref) = readInfRef ref
+newMetaTv :: MonadIO m => Tc m MetaTv
+newMetaTv = MetaTv <$> newUniq <*> newTcRef Nothing
 
-writeMetaTv :: MonadIO m => MetaTv -> Tau -> Infer m ()
-writeMetaTv (MetaTv _ ref) ty = writeInfRef ref (Just ty)
+readMetaTv :: MonadIO m => MetaTv -> Tc m (Maybe Tau)
+readMetaTv (MetaTv _ ref) = readTcRef ref
 
-newUniq :: Monad m => Infer m Uniq
+writeMetaTv :: MonadIO m => MetaTv -> Tau -> Tc m ()
+writeMetaTv (MetaTv _ ref) ty = writeTcRef ref (Just ty)
+
+newUniq :: Monad m => Tc m Uniq
 newUniq = do
         u <- get
         put (u + 1)
@@ -83,12 +86,12 @@ newUniq = do
 emptyEnv :: Env
 emptyEnv = M.empty
 
-extendEnv :: Monad m => Name -> Sigma -> Infer m a -> Infer m a
+extendEnv :: Monad m => Name -> Sigma -> Tc m a -> Tc m a
 extendEnv x ty = local (M.insert x ty)
 
-lookupEnv :: MonadFail m => Name -> Infer m Sigma
+lookupEnv :: MonadFail m => Name -> Tc m Sigma
 lookupEnv x = do
         env <- ask
         case M.lookup x env of
                 Just ty -> return ty
-                Nothing -> failInf $ hsep ["Not in scope ", squotes $ pretty x]
+                Nothing -> failTc $ hsep ["Not in scope ", squotes $ pretty x]

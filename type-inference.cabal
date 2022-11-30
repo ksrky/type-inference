@@ -131,10 +131,11 @@ executable algorithmZ
 executable arbitrary-rank
   main-is: Main.hs
   other-modules:
-      Infer
+      InstGen
       Monad
       Subst
       Syntax
+      Tc
       Unify
       Utils
       Paths_type_inference

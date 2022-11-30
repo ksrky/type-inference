@@ -4,7 +4,7 @@ import Control.Monad
 import Prettyprinter
 import Prettyprinter.Render.Text
 
-import Infer
+import Tc
 import Syntax
 
 main :: IO ()

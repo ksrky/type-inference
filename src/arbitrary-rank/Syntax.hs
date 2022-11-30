@@ -34,9 +34,13 @@ data Type
         deriving (Eq, Show)
 
 type Tau = Type
+type Rho = Type
 type Sigma = Type
 
-newtype TyVar = BoundTv Name deriving (Eq, Ord, Show)
+data TyVar
+        = BoundTv Name
+        | SkolemTv Name Uniq
+        deriving (Eq, Ord, Show)
 
 data TyCon = TUnit deriving (Eq, Show)
 
@@ -61,7 +65,8 @@ type Env = M.Map Name Sigma
 -- Pretty printing
 ----------------------------------------------------------------
 instance Pretty TyVar where
-        pretty (BoundTv var) = pretty var
+        pretty (BoundTv n) = pretty n
+        pretty (SkolemTv n u) = pretty n <> pretty u
 
 instance Pretty TyCon where
         pretty TUnit = "()"
@@ -84,3 +89,7 @@ pprty :: Prec -> Type -> Doc ann
 pprty p ty
         | fromEnum p >= fromEnum (precty ty) = parens (pretty ty)
         | otherwise = pretty ty
+
+tyVarName :: TyVar -> Name
+tyVarName (BoundTv n) = n
+tyVarName (SkolemTv n _) = n

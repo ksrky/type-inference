@@ -8,7 +8,7 @@ import qualified Data.Set as S
 import Monad
 import Syntax
 
-zonkType :: MonadIO m => Type -> Infer m Type
+zonkType :: MonadIO m => Type -> Tc m Type
 zonkType (TyVar tv) = return (TyVar tv)
 zonkType (TyCon tc) = return (TyCon tc)
 zonkType (TyFun arg res) = do
@@ -27,10 +27,10 @@ zonkType (TyMeta tv) = do
                         writeMetaTv tv ty'
                         return ty'
 
-getEnvTypes :: Monad m => Infer m [Type]
+getEnvTypes :: Monad m => Tc m [Type]
 getEnvTypes = asks M.elems
 
-getMetaTvs :: MonadIO m => Type -> Infer m (S.Set MetaTv)
+getMetaTvs :: MonadIO m => Type -> Tc m (S.Set MetaTv)
 getMetaTvs ty = do
         ty' <- zonkType ty
         return (metaTvs ty')
@@ -41,3 +41,15 @@ metaTvs TyCon{} = S.empty
 metaTvs (TyFun arg res) = metaTvs arg `S.union` metaTvs res
 metaTvs (TyAll _ ty) = metaTvs ty
 metaTvs (TyMeta tv) = S.singleton tv
+
+getFreeTvs :: MonadIO m => Type -> Tc m (S.Set TyVar)
+getFreeTvs ty = do
+        ty' <- zonkType ty
+        return (freeTvs ty')
+
+freeTvs :: Type -> S.Set TyVar
+freeTvs (TyVar tv) = S.singleton tv
+freeTvs TyCon{} = S.empty
+freeTvs (TyFun arg res) = freeTvs arg `S.union` freeTvs res
+freeTvs (TyAll tvs ty) = S.fromList tvs `S.union` freeTvs ty
+freeTvs TyMeta{} = S.empty
