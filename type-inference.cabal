@@ -32,7 +32,9 @@ library
   build-depends:
       base >=4.7 && <5
     , containers
+    , megaparsec
     , mtl
+    , parser-combinators
     , prettyprinter
     , safe-exceptions
     , transformers
@@ -54,7 +56,9 @@ executable algorithmJ
   build-depends:
       base >=4.7 && <5
     , containers
+    , megaparsec
     , mtl
+    , parser-combinators
     , prettyprinter
     , safe-exceptions
     , transformers
@@ -76,7 +80,9 @@ executable algorithmM
   build-depends:
       base >=4.7 && <5
     , containers
+    , megaparsec
     , mtl
+    , parser-combinators
     , prettyprinter
     , safe-exceptions
     , transformers
@@ -98,7 +104,9 @@ executable algorithmW
   build-depends:
       base >=4.7 && <5
     , containers
+    , megaparsec
     , mtl
+    , parser-combinators
     , prettyprinter
     , safe-exceptions
     , transformers
@@ -121,7 +129,9 @@ executable algorithmZ
   build-depends:
       base >=4.7 && <5
     , containers
+    , megaparsec
     , mtl
+    , parser-combinators
     , prettyprinter
     , safe-exceptions
     , transformers
@@ -133,6 +143,7 @@ executable arbitrary-rank
   other-modules:
       InstGen
       Monad
+      Parser
       Subst
       Syntax
       Tc
@@ -145,7 +156,9 @@ executable arbitrary-rank
   build-depends:
       base >=4.7 && <5
     , containers
+    , megaparsec
     , mtl
+    , parser-combinators
     , prettyprinter
     , safe-exceptions
     , transformers

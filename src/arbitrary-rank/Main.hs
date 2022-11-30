@@ -4,18 +4,27 @@ import Control.Monad
 import Prettyprinter
 import Prettyprinter.Render.Text
 
+import Parser
 import Tc
-import Syntax
 
 main :: IO ()
-main = forM_ tests $ \t -> do
-        ty <- inferType t
-        putDoc $ pretty ty <> line
+main = forM_ tests $ \inp -> do
+        (t, mty) <- parseLine inp
+        case mty of
+                Nothing -> do
+                        ty <- inferType t
+                        putDoc $ pretty ty <> line
+                Just ty -> do
+                        checkType t ty
+                        putDoc $ pretty ty <> line
 
-tests :: [Term]
+tests :: [String]
 tests =
-        [ TmAbs "x" (TmVar "x") -- \x -> x
-        , TmAbs "f" (TmAbs "x" (TmApp (TmVar "f") (TmVar "x"))) -- \f x -> f x
-        , TmAbs "f" (TmLet "x" (TmLit LUnit) (TmApp (TmVar "f") (TmVar "x"))) -- \f -> let x = () in f x
-        , TmAbs "x" (TmApp (TmLit LUnit) (TmVar "x")) -- \x -> () x
+        [ "\\x -> x"
+        , "\\f -> \\x -> f x"
+        , "\\f -> let x = * in f x"
+        , "\\x -> * x"
+        -- Arbitrary-rank
+        -- "\\x -> x :: (∀a. a -> a) -> ∀a. a -> a"
+        -- , "\\x -> x :: ∀b. (∀a. a -> a) -> b -> b"
         ]
