@@ -30,11 +30,10 @@ library
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-name-shadowing
   build-depends:
-      base >=4.7 && <5
+      array
+    , base >=4.7 && <5
     , containers
-    , megaparsec
     , mtl
-    , parser-combinators
     , prettyprinter
     , safe-exceptions
     , transformers
@@ -54,11 +53,10 @@ executable algorithmJ
       src/algorithmJ
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-name-shadowing -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      array
+    , base >=4.7 && <5
     , containers
-    , megaparsec
     , mtl
-    , parser-combinators
     , prettyprinter
     , safe-exceptions
     , transformers
@@ -78,11 +76,10 @@ executable algorithmM
       src/algorithmM
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-name-shadowing -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      array
+    , base >=4.7 && <5
     , containers
-    , megaparsec
     , mtl
-    , parser-combinators
     , prettyprinter
     , safe-exceptions
     , transformers
@@ -102,11 +99,10 @@ executable algorithmW
       src/algorithmW
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-name-shadowing -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      array
+    , base >=4.7 && <5
     , containers
-    , megaparsec
     , mtl
-    , parser-combinators
     , prettyprinter
     , safe-exceptions
     , transformers
@@ -127,11 +123,10 @@ executable algorithmZ
       src/algorithmZ
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-name-shadowing -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      array
+    , base >=4.7 && <5
     , containers
-    , megaparsec
     , mtl
-    , parser-combinators
     , prettyprinter
     , safe-exceptions
     , transformers
@@ -142,6 +137,7 @@ executable arbitrary-rank
   main-is: Main.hs
   other-modules:
       InstGen
+      Lexer
       Monad
       Parser
       Subst
@@ -154,11 +150,10 @@ executable arbitrary-rank
       src/arbitrary-rank
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-name-shadowing -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      array
+    , base >=4.7 && <5
     , containers
-    , megaparsec
     , mtl
-    , parser-combinators
     , prettyprinter
     , safe-exceptions
     , transformers
