@@ -14,59 +14,59 @@ import Syntax
 
 'let'			{ TokLet }
 'in'			{ TokIn }
-'='				{ TokEq }
+'='			{ TokEq }
 '\\'			{ TokBack }
-'.'				{ TokDot }
+'.'			{ TokDot }
 '->'			{ TokArrow }
 '::'			{ TokCC }
-'∀'				{ TokAll }
-'('				{ TokLParen }
-')'				{ TokRParen }
+'∀'			{ TokAll }
+'('			{ TokLParen }
+')'			{ TokRParen }
 
-Var             { TokName $$ }
+Var             	{ TokName $$ }
 
 %%
 
 Expr 	:: { (Term, Maybe Type) }
-		: Term '::' Type					{ ($1, Just $3) }
-		| Term								{ ($1, Nothing) }
+	: Term '::' Type				{ ($1, Just $3) }
+	| Term						{ ($1, Nothing) }
 
 Term	:: { Term }
-		: '\\' Var '->' Term				{ TmAbs $2 $4 }
-		| 'let' Var '=' Term 'in' Term		{ TmLet $2 $4 $6 }
-		| Term2								{ $1 }
+	: '\\' Var '->' Term				{ TmAbs $2 $4 }
+	| 'let' Var '=' Term 'in' Term			{ TmLet $2 $4 $6 }
+	| Term2						{ $1 }
 
 Term2	:: { Term }
-		: Term2 Term1						{ TmApp $1 $2 }
-		| Term1								{ $1 }
+	: Term2 Term1					{ TmApp $1 $2 }
+	| Term1						{ $1 }
 
 Term1	:: { Term }
-		: Lit								{ TmLit $1 }				
-		| Var								{ TmVar $1 }
-		| '(' Term ')'						{ $2 }
+	: Lit						{ TmLit $1 }				
+	| Var						{ TmVar $1 }
+	| '(' Term ')'					{ $2 }
 
-Lit		:: { Lit }
-		: '(' ')'							{ LUnit }
+Lit	:: { Lit }
+	: '(' ')'					{ LUnit }
 
 Type	:: { Type }
-		: Type1 '->' Type					{ TyFun $1 $3 }
-		| '∀' TyVars '.' Type				{ TyAll $2 $4 }
-		| Type1								{ $1 }
+	: Type1 '->' Type				{ TyFun $1 $3 }
+	| '∀' TyVars '.' Type				{ TyAll $2 $4 }
+	| Type1						{ $1 }
 
 Type1	:: { Type }
-		: TyVar								{ TyVar $1 }
-		| Con								{ TyCon $1 }
-		| '(' Type ')'						{ $2 }
+	: TyVar						{ TyVar $1 }
+	| Con						{ TyCon $1 }
+	| '(' Type ')'					{ $2 }
 
-Con		:: { TyCon }
-		: '(' ')'							{ TUnit }
+Con	:: { TyCon }
+	: '(' ')'					{ TUnit }
 
 TyVars  :: { [TyVar] }
-		: TyVar TyVars						{ $1 : $2 }
-		| TyVar								{ [$1] }
+	: TyVar TyVars					{ $1 : $2 }
+	| TyVar						{ [$1] }
 
 TyVar	:: { TyVar }
-		: Var								{ BoundTv $1 }
+	: Var						{ BoundTv $1 }
 
 {
 type Error = Either String

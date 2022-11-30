@@ -16,19 +16,19 @@ let                     { \_ -> TokLet }
 in                      { \_ -> TokIn }
 
 \=                      { \_ -> TokEq }
-\\						{ \_ -> TokBack }
-\.						{ \_ -> TokDot }
-\-\>					{ \_ -> TokArrow }
-\:\:					{ \_ -> TokCC }
-\∀						{ \_ -> TokAll }
-\(						{ \_ -> TokLParen }
-\)						{ \_ -> TokRParen }
+\\			{ \_ -> TokBack }
+\.			{ \_ -> TokDot }
+\-\>			{ \_ TokArrow }
+\:\:			{ \_ TokCC }
+\∀			{ \_ -> TokAll }
+\(			{ \_ -> TokLParen }
+\)			{ \_ -> TokRParen }
 
 @id                     { \s -> TokName s }
 
 {
 data Token
-    = TokLet
+        = TokLet
 	| TokIn
 	| TokEq
 	| TokBack
