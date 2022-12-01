@@ -15,10 +15,10 @@ import Unify
 import Utils
 
 checkType :: (MonadFail m, MonadIO m) => Term -> Type -> m ()
-checkType t ty = void $ runTc (checkSigma t ty) emptyEnv 0
+checkType t ty = runTc (checkSigma t ty) =<< emptyEnv
 
 inferType :: (MonadFail m, MonadIO m) => Term -> m Type
-inferType t = fst <$> runTc (inferSigma t) emptyEnv 0
+inferType t = runTc (inferSigma t) =<< emptyEnv
 
 data Expected a = Infer (IORef a) | Check a
 
