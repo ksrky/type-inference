@@ -10,21 +10,24 @@ import Syntax
 import Utils
 
 -- | Instantiation
-instantiate :: MonadIO m => Sigma -> Tc m Rho
+instantiate :: MonadIO m => Sigma -> Tc m (Term -> Term, Rho)
 instantiate (TyAll tvs tau) = do
         tys <- mapM (const newTyVar) tvs
-        return $ subst tvs tys tau
-instantiate ty = return ty
+        let coercion = \t -> TmTApp t tys
+        return (coercion, subst tvs tys tau)
+instantiate ty = return (id, ty)
 
-skolemise :: MonadIO m => Sigma -> Tc m ([TyVar], Rho)
+skolemise :: MonadIO m => Sigma -> Tc m (Term -> Term, [TyVar], Rho)
 skolemise (TyAll tvs ty) = do
         sks1 <- mapM newSkolemTyVar tvs
-        (sks2, ty') <- skolemise (subst tvs (map TyVar sks1) ty)
-        return (sks1 ++ sks2, ty')
+        (coercion, sks2, ty') <- skolemise (subst tvs (map TyVar sks1) ty)
+        let coercion' = \t -> TmTAbs (map tyVarName sks1) (coercion $ TmTApp t (map TyVar sks1))
+        return (if null sks2 then id else coercion', sks1 ++ sks2, ty')
 skolemise (TyFun arg_ty res_ty) = do
-        (sks, res_ty') <- skolemise res_ty
-        return (sks, TyFun arg_ty res_ty')
-skolemise ty = return ([], ty)
+        (coercion, sks, res_ty') <- skolemise res_ty
+        let coercion' = \t -> TmAbs "x" (Just arg_ty) (coercion $ TmTAbs (map tyVarName sks) (TmApp (TmTApp t (map TyVar sks)) (TmVar "x")))
+        return (if null sks then coercion else coercion', sks, TyFun arg_ty res_ty')
+skolemise ty = return (id, [], ty)
 
 -- | Generalization
 generalize :: MonadIO m => Rho -> Tc m Sigma
