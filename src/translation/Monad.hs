@@ -1,12 +1,10 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections #-}
 
 module Monad where
 
 import Control.Monad.Reader
-import Control.Monad.State.Class
 import Data.IORef
 import qualified Data.Map.Strict as M
 import Prettyprinter
@@ -14,38 +12,40 @@ import Prettyprinter.Render.String
 
 import Syntax
 
+-- | TcEnv
+data TcEnv = TcEnv
+        { tc_env :: Env
+        , tc_uniq :: IORef Uniq
+        }
+
 -- | Tc monad
-newtype Tc m a = Tc {runTc :: Env -> Uniq -> m (a, Uniq)}
+newtype Tc m a = Tc {runTc :: TcEnv -> m a}
 
 instance Monad m => Functor (Tc m) where
-        fmap f (Tc m) = Tc $ \env uniq -> do
-                (x, uniq') <- m env uniq
-                return (f x, uniq')
+        fmap f (Tc m) = Tc $ \env -> do
+                x <- m env
+                return (f x)
 
 instance Monad m => Applicative (Tc m) where
-        pure x = Tc (\_ uniq -> return (x, uniq))
-        f <*> x = Tc $ \env uniq -> do
-                (f', uniq') <- runTc f env uniq
-                runTc (fmap f' x) env uniq'
+        pure x = Tc (\_ -> return x)
+        f <*> x = Tc $ \env -> do
+                f' <- runTc f env
+                runTc (fmap f' x) env
 
 instance Monad m => Monad (Tc m) where
-        m >>= k = Tc $ \env uniq -> do
-                (v, uniq') <- runTc m env uniq
-                runTc (k v) env uniq'
+        m >>= k = Tc $ \env -> do
+                v <- runTc m env
+                runTc (k v) env
 
 instance MonadFail m => MonadFail (Tc m) where
-        fail s = Tc $ \_ _ -> fail s
+        fail s = Tc $ \_ -> fail s
 
 instance MonadTrans Tc where
-        lift m = Tc (\_ uniq -> (,uniq) <$> m)
-
-instance Monad m => MonadState Uniq (Tc m) where
-        get = Tc (\_ uniq -> return (uniq, uniq))
-        put uniq = Tc (\_ _ -> return ((), uniq))
+        lift m = Tc (const m)
 
 instance Monad m => MonadReader Env (Tc m) where
-        ask = Tc (curry return)
-        local f (Tc m) = Tc (m . f)
+        ask = Tc (return . tc_env)
+        local f (Tc m) = Tc (\env -> m env{tc_env = f (tc_env env)})
 
 failTc :: MonadFail m => Doc ann -> Tc m a
 failTc doc = fail $ renderString $ layoutPretty defaultLayoutOptions doc
@@ -76,15 +76,18 @@ readMetaTv (MetaTv _ ref) = readTcRef ref
 writeMetaTv :: MonadIO m => MetaTv -> Tau -> Tc m ()
 writeMetaTv (MetaTv _ ref) ty = writeTcRef ref (Just ty)
 
-newUniq :: Monad m => Tc m Uniq
-newUniq = do
-        u <- get
-        put (u + 1)
+newUniq :: MonadIO m => Tc m Uniq
+newUniq = Tc $ \env -> do
+        let ref = tc_uniq env
+        u <- liftIO $ readIORef ref
+        liftIO $ writeIORef ref (u + 1)
         return u
 
 -- | Environment management
-emptyEnv :: Env
-emptyEnv = M.empty
+emptyEnv :: MonadIO m => m TcEnv
+emptyEnv = do
+        ref <- liftIO $ newIORef 0
+        return $ TcEnv M.empty ref
 
 extendEnv :: Monad m => Name -> Sigma -> Tc m a -> Tc m a
 extendEnv x ty = local (M.insert x ty)
