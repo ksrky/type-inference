@@ -18,8 +18,10 @@ data Term
         = TmLit Lit
         | TmVar Name
         | TmApp Term Term
-        | TmAbs Name Term
+        | TmAbs Name (Maybe Sigma) Term
         | TmLet Name Term Term
+        | TmTApp Term [Type]
+        | TmTAbs [Name] Term
         deriving (Eq, Show)
 
 data Lit = LUnit deriving (Eq, Show)
@@ -68,6 +70,32 @@ type Env = M.Map Name Sigma
 ----------------------------------------------------------------
 -- Pretty printing
 ----------------------------------------------------------------
+-- | Pretty terms
+instance Pretty Lit where
+        pretty LUnit = "()"
+
+instance Pretty Term where
+        pretty (TmLit l) = pretty l
+        pretty (TmVar n) = pretty n
+        pretty t@TmApp{} = pprapp t
+        pretty (TmAbs var Nothing body) = hcat [backslash, pretty var, dot, pretty body]
+        pretty (TmAbs var (Just var_ty) body) = hcat [backslash, pretty var, colon, pretty var_ty, dot <+> pretty body]
+        pretty (TmLet var rhs body) = hsep ["let", pretty var, equals, pretty rhs, "in", pretty body]
+        pretty (TmTApp body ty_args) = pretty body <+> hsep (map (\x -> "@" <> pretty x) ty_args)
+        pretty (TmTAbs ty_vars body) = backslash <> hsep (map (\x -> "@" <> pretty x) ty_vars) <+> pretty body
+
+pprapp :: Term -> Doc ann
+pprapp t = walk t []
+    where
+        walk :: Term -> [Term] -> Doc ann
+        walk (TmApp t1 t2) ts = walk t1 (t2 : ts)
+        walk t' ts = ppratom t' <+> sep (map ppratom ts)
+
+ppratom :: Term -> Doc ann
+ppratom t@TmVar{} = pretty t
+ppratom t = parens (pretty t)
+
+-- | Pretty types
 instance Pretty TyVar where
         pretty (BoundTv n) = pretty n
         pretty (SkolemTv n u) = pretty n <> pretty u
