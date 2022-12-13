@@ -21,7 +21,7 @@ data Term
         | TmAbs Name (Maybe Sigma) Term
         | TmLet Name Term Term
         | TmTApp Term [Type]
-        | TmTAbs [Name] Term
+        | TmTAbs [TyVar] Term
         deriving (Eq, Show)
 
 data Lit = LUnit deriving (Eq, Show)
@@ -30,8 +30,8 @@ data Lit = LUnit deriving (Eq, Show)
 data Type
         = TyVar TyVar
         | TyCon TyCon
-        | TyFun Tau Tau
-        | TyAll [TyVar] Tau
+        | TyFun Type Type
+        | TyAll [TyVar] Sigma
         | TyMeta MetaTv
         deriving (Eq, Show)
 
@@ -82,7 +82,7 @@ instance Pretty Term where
         pretty (TmAbs var (Just var_ty) body) = hcat [backslash, pretty var, colon, pretty var_ty, dot <+> pretty body]
         pretty (TmLet var rhs body) = hsep ["let", pretty var, equals, pretty rhs, "in", pretty body]
         pretty (TmTApp body ty_args) = pretty body <+> hsep (map (\x -> "@" <> pretty x) ty_args)
-        pretty (TmTAbs ty_vars body) = backslash <> hsep (map (\x -> "@" <> pretty x) ty_vars) <+> pretty body
+        pretty (TmTAbs ty_vars body) = backslash <> hsep (map (\x -> "@" <> pretty x <> dot) ty_vars) <+> pretty body
 
 pprapp :: Term -> Doc ann
 pprapp t = walk t []

@@ -10,9 +10,7 @@ import Tc
 
 main :: IO ()
 main = forM_ tests $ \inp -> do
-        (t, mty) <- case parse (alexScanTokens inp) of
-                Left err -> fail err
-                Right res -> return res
+        (t, mty) <- parse (alexScanTokens inp)
         case mty of
                 Nothing -> do
                         ty <- inferType t
@@ -25,7 +23,7 @@ tests :: [String]
 tests =
         [ "\\x -> x"
         , "\\f -> \\x -> f x"
-        , "\\f -> let x = ()in f x"
+        , "\\f -> let x = () in f x"
         , -- Arbitrary-rank
           "\\x -> x :: ∀a. a -> a"
         , "\\x -> x :: (∀a. a -> a) -> ∀a. a -> a"

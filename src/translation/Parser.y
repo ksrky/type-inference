@@ -7,7 +7,7 @@ import Syntax
 
 %name parse
 %tokentype { Token }
-%monad { Error } { >>= } { return }
+%monad { IO } { >>= } { return }
 %error { parseError }
 
 %token
@@ -69,8 +69,7 @@ TyVar	:: { TyVar }
 	: Var						{ BoundTv $1 }
 
 {
-type Error = Either String
-
-parseError :: [Token] -> Error a
-parseError ts = Left $ "Parse error: " ++ show ts
+parseError :: [Token] -> IO a
+parseError [] = fail "parse error at EOF"
+parseError (t : _) = fail $ "parse error at " ++ show t
 }

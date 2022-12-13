@@ -28,8 +28,8 @@ data Lit = LUnit deriving (Eq, Show)
 data Type
         = TyVar TyVar
         | TyCon TyCon
-        | TyFun Tau Tau
-        | TyAll [TyVar] Tau
+        | TyFun Type Type
+        | TyAll [TyVar] Sigma
         | TyMeta MetaTv
         deriving (Eq, Show)
 
