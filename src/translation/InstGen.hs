@@ -35,9 +35,10 @@ generalize ty = do
         env_tvs <- mapM getMetaTvs =<< getEnvTypes
         res_tvs <- getMetaTvs ty
         let all_tvs = res_tvs `S.difference` mconcat env_tvs
-        if null all_tvs then return ([], ty) else quantify (S.toList all_tvs) ty
+        quantify (S.toList all_tvs) ty
 
 quantify :: MonadIO m => [MetaTv] -> Rho -> Tc m ([TyVar], Sigma)
+quantify [] ty = return ([], ty)
 quantify tvs ty = do
         let new_bndrs = take (length tvs) allBinders
         zipWithM_ writeMetaTv tvs (map TyVar new_bndrs)
