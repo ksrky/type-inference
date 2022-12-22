@@ -66,24 +66,6 @@ instance Show MetaTv where
 -- | Environment
 type Env = M.Map Name Sigma
 
--- | Coercion
-data Coercion = Id | Coer (Term -> Term)
-
-instance Eq Coercion where
-        Id == Id = True
-        _ == _ = False
-
-(@@) :: Coercion -> Term -> Term
-Id @@ t = t
-Coer f @@ t = f t
-
-(>.>) :: Coercion -> Coercion -> Coercion
-Id >.> f = f
-f >.> Id = f
-Coer f1 >.> Coer f2 = Coer (f1 . f2)
-
-infixr 9 >.>
-
 ----------------------------------------------------------------
 -- Pretty printing
 ----------------------------------------------------------------

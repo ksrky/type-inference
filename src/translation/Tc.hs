@@ -12,6 +12,7 @@ import Prettyprinter
 import InstGen
 import Monad
 import Syntax
+import Translate
 import Unify
 import Utils
 
@@ -64,9 +65,9 @@ tcRho _ _ = fail "Exception"
 inferSigma :: (MonadFail m, MonadIO m) => Term -> Tc m (Term, Sigma)
 inferSigma t = do
         (t, rho) <- inferRho t
-        sigma <- generalize rho
+        (tvs, sigma) <- generalize rho
         t' <- zonkTerm t -- reduce TyMeta
-        return (t', sigma)
+        return (genTrans tvs @@ t', sigma)
 
 checkSigma :: (MonadIO m, MonadFail m) => Term -> Sigma -> Tc m Term
 checkSigma t sigma = do
@@ -76,7 +77,7 @@ checkSigma t sigma = do
         esc_tvs <- S.union <$> getFreeTvs sigma <*> (mconcat <$> mapM getFreeTvs env_tys)
         let bad_tvs = filter (`elem` esc_tvs) skol_tvs
         unless (null bad_tvs) $ failTc "Type not polymorphic enough"
-        return $ coercion @@ if null skol_tvs then t' else TmTAbs skol_tvs t'
+        return $ coercion @@ genTrans skol_tvs @@ t'
 
 -- | Subsumption checking
 subsCheck :: (MonadIO m, MonadFail m) => Sigma -> Sigma -> Tc m Coercion
@@ -86,7 +87,7 @@ subsCheck sigma1 sigma2 = do
         esc_tvs <- S.union <$> getFreeTvs sigma1 <*> getFreeTvs sigma2
         let bad_tvs = S.fromList skol_tvs `S.intersection` esc_tvs
         unless (null bad_tvs) $ failTc $ hsep ["Subsumption check failed: ", pretty sigma1 <> comma, pretty sigma2]
-        return $ coercion1 >.> if null skol_tvs then Id else Coer (TmTAbs skol_tvs) >.> coercion2
+        return $ deepskolTrans skol_tvs coercion1 coercion2
 
 subsCheckRho :: (MonadIO m, MonadFail m) => Sigma -> Rho -> Tc m Coercion
 subsCheckRho sigma1@TyAll{} rho2 = do
@@ -107,9 +108,7 @@ subsCheckFun :: (MonadIO m, MonadFail m) => Sigma -> Rho -> Sigma -> Rho -> Tc m
 subsCheckFun a1 r1 a2 r2 = do
         co_arg <- subsCheck a2 a1
         co_res <- subsCheckRho r1 r2
-        return $ case (co_arg, co_res) of
-                (Id, Id) -> Id
-                _ -> Coer $ \f -> TmAbs "?x" (Just a2) (co_res @@ TmApp f (co_arg @@ TmVar "?x"))
+        return $ funTrans a2 co_arg co_res
 
 -- | Instantiation of Sigma
 instSigma :: (MonadIO m, MonadFail m) => Sigma -> Expected Rho -> Tc m Coercion

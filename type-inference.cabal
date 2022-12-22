@@ -170,6 +170,7 @@ executable translation
       Subst
       Syntax
       Tc
+      Translate
       Unify
       Utils
       Paths_type_inference
