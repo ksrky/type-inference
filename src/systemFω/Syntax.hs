@@ -32,6 +32,8 @@ data Type
         | TyCon TyCon
         | TyFun Type Type
         | TyAll [TyVar] Sigma
+        | TyApp Type Type
+        | TyAbs Name Type
         | TyMeta MetaTv
         deriving (Eq, Show)
 

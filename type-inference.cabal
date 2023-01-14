@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.35.1.
 --
 -- see: https://github.com/sol/hpack
 
@@ -148,6 +148,34 @@ executable arbitrary-rank
       Paths_type_inference
   hs-source-dirs:
       src/arbitrary-rank
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-name-shadowing -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      array
+    , base >=4.7 && <5
+    , containers
+    , mtl
+    , prettyprinter
+    , safe-exceptions
+    , transformers
+    , type-inference
+  default-language: Haskell2010
+
+executable systemFω
+  main-is: Main.hs
+  other-modules:
+      InstGen
+      Lexer
+      Monad
+      Parser
+      Subst
+      Syntax
+      Tc
+      Translate
+      Unify
+      Utils
+      Paths_type_inference
+  hs-source-dirs:
+      src/systemFω
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-name-shadowing -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       array
