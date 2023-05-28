@@ -14,15 +14,19 @@ tokens :-
 $white+                 ;
 let                     { \_ -> TokLet }
 in                      { \_ -> TokIn }
+val                     { \_ -> TokVal }
+type                    { \_ -> TokType } 
+check                   { \_ -> TokCheck }
 
 \=                      { \_ -> TokEq }
 \\                      { \_ -> TokBack }
 \.                      { \_ -> TokDot }
 \-\>                    { \_ -> TokArrow }
-\:\:                    { \_ -> TokCC }
+\:                      { \_ -> TokColon }
 \∀                      { \_ -> TokAll }
 \(                      { \_ -> TokLParen }
 \)                      { \_ -> TokRParen }
+\;                      { \_ -> TokSemi }
 
 @id                     { \s -> TokName s }
 
@@ -30,14 +34,18 @@ in                      { \_ -> TokIn }
 data Token
     = TokLet
     | TokIn
+    | TokVal
+    | TokType
+    | TokCheck
     | TokEq
     | TokBack
     | TokDot
     | TokArrow
-    | TokCC
+    | TokColon
     | TokAll
     | TokLParen
     | TokRParen
+    | TokSemi
     | TokName String
     deriving (Eq, Show)
 }

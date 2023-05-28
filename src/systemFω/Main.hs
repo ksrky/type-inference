@@ -1,34 +1,30 @@
 module Main where
 
 import Control.Monad
+import Control.Monad.IO.Class
 import Prettyprinter
 import Prettyprinter.Render.Text
 
 import Lexer
+import Monad
 import Parser
+import Syntax
 import Tc
 
 main :: IO ()
-main = forM_ tests $ \inp -> do
-        (t, mty) <- parse (alexScanTokens inp)
-        case mty of
-                Nothing -> do
-                        (t, _) <- inferType t
-                        putDoc $ pretty t <> line
-                Just ty -> do
-                        t <- checkType t ty
-                        putDoc $ pretty t <> line
+main = undefined {- forM_ tests $ \inp -> do
+                         cmds <- parse (alexScanTokens inp)
+                         case mty of
+                                 Nothing -> do
+                                         (t, _) <- inferType t
+                                         putDoc $ pretty t <> line
+                                 Just ty -> do
+                                         t <- checkType t ty
+                                         putDoc $ pretty t <> line
 
-tests :: [String]
-tests =
-        [ "\\x -> x"
-        , "\\f -> \\x -> f x"
-        , "\\f -> let x = () in f x"
-        , -- Arbitrary-rank
-          "\\x -> x :: ∀a. a -> a"
-        , "\\x -> x :: (∀a. a -> a) -> ∀a. a -> a"
-        , "\\x -> x :: ∀b. (∀a. a -> a) -> b -> b"
-        , "\\x -> x :: (∀a. a -> a) -> ∀b. b -> b"
-        , "\\f -> f () :: (∀a. a -> a) -> ()"
-        , "\\f -> f () :: ∀a. (a -> a) -> ()"
-        ]
+                 process :: (MonadFail m, MonadIO m) => [Command] -> Tc m ()
+                 process (TmBind x ty t : cmds) = extendEnv x ty $ process cmds
+                 process (TyBind x ty : cmds) = undefined
+                 process (TyCheck t ty : cmds) = do
+                         t' <- checkSigma t ty
+                         liftIO $ putDoc $ pretty t' <> line-}

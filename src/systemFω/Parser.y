@@ -14,22 +14,31 @@ import Syntax
 
 'let'			{ TokLet }
 'in'			{ TokIn }
+'val'			{ TokVal }
+'type'			{ TokType }
+'check'			{ TokCheck }
 '='			{ TokEq }
 '\\'			{ TokBack }
 '.'			{ TokDot }
 '->'			{ TokArrow }
-'::'			{ TokCC }
+':'			{ TokColon }
 '∀'			{ TokAll }
 '('			{ TokLParen }
 ')'			{ TokRParen }
+';'			{ TokSemi }
 
 Var             	{ TokName $$ }
 
 %%
 
-Expr 	:: { (Term, Maybe Type) }
-	: Term '::' Type				{ ($1, Just $3) }
-	| Term						{ ($1, Nothing) }
+Dummy	:: { Command }
+	: {- empty -}					{ undefined }
+
+{- 
+Decl	:: { Command }
+	: 'val' Var ':' Type '=' Term ';'		{ TmBind $2 $4 $6 }	
+	| 'type' Var '=' Type ';'			{ TyBind $2 $4 }
+	| 'check' Term ':' Type ';'			{ TyCheck $2 $4 }
 
 Term	:: { Term }
 	: '\\' Var '->' Term				{ TmAbs $2 Nothing $4 }
@@ -67,7 +76,7 @@ TyVars  :: { [TyVar] }
 
 TyVar	:: { TyVar }
 	: Var						{ BoundTv $1 }
-
+-}
 {
 parseError :: [Token] -> IO a
 parseError [] = fail "parse error at EOF"

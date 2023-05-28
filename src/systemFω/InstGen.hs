@@ -1,5 +1,3 @@
-{-# LANGUAGE TupleSections #-}
-
 module InstGen where
 
 import Control.Monad

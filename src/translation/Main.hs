@@ -26,6 +26,7 @@ tests =
         , "\\f -> let x = () in f x"
         , -- Arbitrary-rank
           "\\x -> x :: ∀a. a -> a"
+        , "\\f -> \\x -> f x :: ∀a. ∀b. (a -> b) -> a -> b"
         , "\\x -> x :: (∀a. a -> a) -> ∀a. a -> a"
         , "\\x -> x :: ∀b. (∀a. a -> a) -> b -> b"
         , "\\x -> x :: (∀a. a -> a) -> ∀b. b -> b"
