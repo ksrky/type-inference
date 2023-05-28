@@ -33,6 +33,7 @@ library
       array
     , base >=4.7 && <5
     , containers
+    , haskeline
     , mtl
     , prettyprinter
     , safe-exceptions
@@ -60,6 +61,7 @@ executable GADT
       array
     , base >=4.7 && <5
     , containers
+    , haskeline
     , mtl
     , prettyprinter
     , safe-exceptions
@@ -84,6 +86,7 @@ executable algorithmJ
       array
     , base >=4.7 && <5
     , containers
+    , haskeline
     , mtl
     , prettyprinter
     , safe-exceptions
@@ -107,6 +110,7 @@ executable algorithmM
       array
     , base >=4.7 && <5
     , containers
+    , haskeline
     , mtl
     , prettyprinter
     , safe-exceptions
@@ -130,6 +134,7 @@ executable algorithmW
       array
     , base >=4.7 && <5
     , containers
+    , haskeline
     , mtl
     , prettyprinter
     , safe-exceptions
@@ -154,6 +159,7 @@ executable algorithmZ
       array
     , base >=4.7 && <5
     , containers
+    , haskeline
     , mtl
     , prettyprinter
     , safe-exceptions
@@ -181,6 +187,7 @@ executable arbitrary-rank
       array
     , base >=4.7 && <5
     , containers
+    , haskeline
     , mtl
     , prettyprinter
     , safe-exceptions
@@ -209,6 +216,7 @@ executable systemF
       array
     , base >=4.7 && <5
     , containers
+    , haskeline
     , mtl
     , prettyprinter
     , safe-exceptions

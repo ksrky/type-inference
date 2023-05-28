@@ -4,9 +4,8 @@
 module Tc where
 
 import Control.Monad.Reader
-import qualified Data.Set as S
-
 import Data.IORef
+import qualified Data.Set as S
 import Prettyprinter
 
 import Coercion

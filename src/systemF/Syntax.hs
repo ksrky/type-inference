@@ -81,8 +81,8 @@ instance Pretty Term where
         pretty (TmAbs var Nothing body) = hcat [backslash, pretty var, dot, pretty body]
         pretty (TmAbs var (Just var_ty) body) = hcat [backslash, pretty var, colon, pretty var_ty, dot <+> pretty body]
         pretty (TmLet var rhs body) = hsep ["let", pretty var, equals, pretty rhs, "in", pretty body]
-        pretty (TmTApp body ty_args) = ppratom body <+> hsep (map (\x -> "@" <> pretty x) ty_args)
-        pretty (TmTAbs ty_vars body) = "Λ" <> hsep (map (\x -> pretty x <> dot) ty_vars) <+> pretty body
+        pretty (TmTApp body ty_args) = ppratom body <+> brackets (hsep (map pretty ty_args))
+        pretty (TmTAbs ty_vars body) = hcat ["Λ", hsep (map pretty ty_vars), dot, space, pretty body]
 
 pprapp :: Term -> Doc ann
 pprapp t = walk t []
