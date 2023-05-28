@@ -9,10 +9,10 @@ import qualified Data.Set as S
 import Data.IORef
 import Prettyprinter
 
+import Coercion
 import InstGen
 import Monad
 import Syntax
-import Translate
 import Unify
 import Utils
 
@@ -39,13 +39,13 @@ tcRho (TmLit LUnit) exp_ty = instSigma (TyCon TUnit) exp_ty >> return (TmLit LUn
 tcRho (TmVar n) exp_ty = do
         sigma <- lookupEnv n
         coercion <- instSigma sigma exp_ty
-        return $ coercion @@ TmVar n
+        return $ coercion .> TmVar n
 tcRho (TmApp fun arg) exp_ty = do
         (fun', fun_ty) <- inferRho fun
         (arg_ty, res_ty) <- unifyFun fun_ty
         arg' <- checkSigma arg arg_ty
         coercion <- instSigma res_ty exp_ty
-        return $ coercion @@ TmApp fun' arg'
+        return $ coercion .> TmApp fun' arg'
 tcRho (TmAbs var _ body) (Check exp_ty) = do
         (var_ty, body_ty) <- unifyFun exp_ty
         body' <- extendEnv var var_ty (checkRho body body_ty)
@@ -67,7 +67,7 @@ inferSigma t = do
         (t, rho) <- inferRho t
         (tvs, sigma) <- generalize rho
         t' <- zonkTerm t -- reduce TyMeta
-        return (genTrans tvs @@ t', sigma)
+        return (genTrans tvs .> t', sigma)
 
 checkSigma :: (MonadIO m, MonadFail m) => Term -> Sigma -> Tc m Term
 checkSigma t sigma = do
@@ -77,7 +77,7 @@ checkSigma t sigma = do
         esc_tvs <- S.union <$> getFreeTvs sigma <*> (mconcat <$> mapM getFreeTvs env_tys)
         let bad_tvs = filter (`elem` esc_tvs) skol_tvs
         unless (null bad_tvs) $ failTc "Type not polymorphic enough"
-        return $ coercion @@ genTrans skol_tvs @@ t'
+        return $ coercion .> genTrans skol_tvs .> t'
 
 -- | Subsumption checking
 subsCheck :: (MonadIO m, MonadFail m) => Sigma -> Sigma -> Tc m Coercion
@@ -93,7 +93,7 @@ subsCheckRho :: (MonadIO m, MonadFail m) => Sigma -> Rho -> Tc m Coercion
 subsCheckRho sigma1@TyAll{} rho2 = do
         (coercion1, rho1) <- instantiate sigma1
         coercion2 <- subsCheckRho rho1 rho2
-        return (coercion2 >.> coercion1)
+        return (coercion2 <.> coercion1)
 subsCheckRho rho1 (TyFun a2 r2) = do
         (a1, r1) <- unifyFun rho1
         subsCheckFun a1 r1 a2 r2

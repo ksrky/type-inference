@@ -88,18 +88,18 @@ executables:
       - -with-rtsopts=-N
     dependencies:
       - type-inference
-  translation:
+  systemF:
     main: Main.hs
-    source-dirs: src/translation
+    source-dirs: src/SystemF
     ghc-options:
       - -threaded
       - -rtsopts
       - -with-rtsopts=-N
     dependencies:
       - type-inference
-  systemFω:
+  GADT:
     main: Main.hs
-    source-dirs: src/systemFω
+    source-dirs: src/GADT
     ghc-options:
       - -threaded
       - -rtsopts

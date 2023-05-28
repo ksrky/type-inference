@@ -24,6 +24,29 @@ source-repository head
   location: https://github.com/ksrky/type-inference
 
 library
+  exposed-modules:
+      GADT.InstGen
+      GADT.Lexer
+      GADT.Main
+      GADT.Monad
+      GADT.Parser
+      GADT.Subst
+      GADT.Syntax
+      GADT.Tc
+      GADT.Translate
+      GADT.Unify
+      GADT.Utils
+      SystemF.Coercion
+      SystemF.InstGen
+      SystemF.Lexer
+      SystemF.Main
+      SystemF.Monad
+      SystemF.Parser
+      SystemF.Subst
+      SystemF.Syntax
+      SystemF.Tc
+      SystemF.Unify
+      SystemF.Utils
   other-modules:
       Paths_type_inference
   hs-source-dirs:
@@ -37,6 +60,34 @@ library
     , prettyprinter
     , safe-exceptions
     , transformers
+  default-language: Haskell2010
+
+executable GADT
+  main-is: Main.hs
+  other-modules:
+      InstGen
+      Lexer
+      Monad
+      Parser
+      Subst
+      Syntax
+      Tc
+      Translate
+      Unify
+      Utils
+      Paths_type_inference
+  hs-source-dirs:
+      src/GADT
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-name-shadowing -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      array
+    , base >=4.7 && <5
+    , containers
+    , mtl
+    , prettyprinter
+    , safe-exceptions
+    , transformers
+    , type-inference
   default-language: Haskell2010
 
 executable algorithmJ
@@ -160,9 +211,10 @@ executable arbitrary-rank
     , type-inference
   default-language: Haskell2010
 
-executable systemFω
+executable systemF
   main-is: Main.hs
   other-modules:
+      Coercion
       InstGen
       Lexer
       Monad
@@ -170,40 +222,11 @@ executable systemFω
       Subst
       Syntax
       Tc
-      Translate
       Unify
       Utils
       Paths_type_inference
   hs-source-dirs:
-      src/systemFω
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-name-shadowing -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      array
-    , base >=4.7 && <5
-    , containers
-    , mtl
-    , prettyprinter
-    , safe-exceptions
-    , transformers
-    , type-inference
-  default-language: Haskell2010
-
-executable translation
-  main-is: Main.hs
-  other-modules:
-      InstGen
-      Lexer
-      Monad
-      Parser
-      Subst
-      Syntax
-      Tc
-      Translate
-      Unify
-      Utils
-      Paths_type_inference
-  hs-source-dirs:
-      src/translation
+      src/SystemF
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-name-shadowing -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       array

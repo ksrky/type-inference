@@ -4,10 +4,10 @@ import Control.Monad
 import Control.Monad.IO.Class
 import qualified Data.Set as S
 
+import Coercion
 import Monad
 import Subst
 import Syntax
-import Translate
 import Utils
 
 -- | Instantiation
