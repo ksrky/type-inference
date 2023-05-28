@@ -90,7 +90,7 @@ executables:
       - type-inference
   systemF:
     main: Main.hs
-    source-dirs: src/SystemF
+    source-dirs: src/systemF
     ghc-options:
       - -threaded
       - -rtsopts
@@ -99,7 +99,7 @@ executables:
       - type-inference
   GADT:
     main: Main.hs
-    source-dirs: src/GADT
+    source-dirs: src/gadt
     ghc-options:
       - -threaded
       - -rtsopts

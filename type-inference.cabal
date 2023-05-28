@@ -24,29 +24,6 @@ source-repository head
   location: https://github.com/ksrky/type-inference
 
 library
-  exposed-modules:
-      GADT.InstGen
-      GADT.Lexer
-      GADT.Main
-      GADT.Monad
-      GADT.Parser
-      GADT.Subst
-      GADT.Syntax
-      GADT.Tc
-      GADT.Translate
-      GADT.Unify
-      GADT.Utils
-      SystemF.Coercion
-      SystemF.InstGen
-      SystemF.Lexer
-      SystemF.Main
-      SystemF.Monad
-      SystemF.Parser
-      SystemF.Subst
-      SystemF.Syntax
-      SystemF.Tc
-      SystemF.Unify
-      SystemF.Utils
   other-modules:
       Paths_type_inference
   hs-source-dirs:
@@ -77,7 +54,7 @@ executable GADT
       Utils
       Paths_type_inference
   hs-source-dirs:
-      src/GADT
+      src/gadt
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-name-shadowing -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       array
@@ -226,7 +203,7 @@ executable systemF
       Utils
       Paths_type_inference
   hs-source-dirs:
-      src/SystemF
+      src/systemF
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-name-shadowing -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       array
