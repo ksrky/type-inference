@@ -5,10 +5,10 @@ import Control.Monad.IO.Class
 import qualified Data.Set as S
 
 import Coercion
+import Misc
 import Monad
 import Subst
 import Syntax
-import Utils
 
 -- | Instantiation
 instantiate :: MonadIO m => Sigma -> Tc m (Coercion, Rho)

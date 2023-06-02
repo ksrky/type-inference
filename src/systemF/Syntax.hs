@@ -1,4 +1,8 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 module Syntax where
 
@@ -13,16 +17,21 @@ import Prettyprinter
 -- | Name
 type Name = String
 
+data InOut = In | Out
+
 -- | Term
-data Term
-        = TmLit Lit
-        | TmVar Name
-        | TmApp Term Term
-        | TmAbs Name (Maybe Sigma) Term
-        | TmLet Name Term Term
-        | TmTApp Term [Type]
-        | TmTAbs [TyVar] Term
-        deriving (Eq, Show)
+data Term (a :: InOut) where
+        TmLit :: Lit -> Term a
+        TmVar :: Name -> Term a
+        TmApp :: Term a -> Term a -> Term a
+        TmAbs :: Name -> Term 'In -> Term 'In
+        TmAbs' :: Name -> Sigma -> Term 'Out -> Term 'Out
+        TmLet :: Name -> Term a -> Term a -> Term a
+        TmTApp :: Term 'Out -> [Type] -> Term 'Out
+        TmTAbs :: [TyVar] -> Term 'Out -> Term 'Out
+
+deriving instance Eq (Term a)
+deriving instance Show (Term a)
 
 data Lit = LUnit deriving (Eq, Show)
 
@@ -74,24 +83,24 @@ type Env = M.Map Name Sigma
 instance Pretty Lit where
         pretty LUnit = "()"
 
-instance Pretty Term where
+instance Pretty (Term a) where
         pretty (TmLit l) = pretty l
         pretty (TmVar n) = pretty n
         pretty t@TmApp{} = pprapp t
-        pretty (TmAbs var Nothing body) = hcat [backslash, pretty var, dot, pretty body]
-        pretty (TmAbs var (Just var_ty) body) = hcat [backslash, pretty var, colon, pretty var_ty, dot <+> pretty body]
+        pretty (TmAbs var body) = hcat [backslash, pretty var, dot, pretty body]
+        pretty (TmAbs' var var_ty body) = hcat [backslash, pretty var, colon, pretty var_ty, dot <+> pretty body]
         pretty (TmLet var rhs body) = hsep ["let", pretty var, equals, pretty rhs, "in", pretty body]
         pretty (TmTApp body ty_args) = ppratom body <+> brackets (hsep (map pretty ty_args))
-        pretty (TmTAbs ty_vars body) = hcat ["Λ", hsep (map pretty ty_vars), dot, space, pretty body]
+        pretty (TmTAbs tyvars body) = hcat ["Λ", hsep (map pretty tyvars), dot, space, pretty body]
 
-pprapp :: Term -> Doc ann
+pprapp :: Term a -> Doc ann
 pprapp t = walk t []
     where
-        walk :: Term -> [Term] -> Doc ann
+        walk :: Term a -> [Term a] -> Doc ann
         walk (TmApp t1 t2) ts = walk t1 (t2 : ts)
         walk t' ts = ppratom t' <+> sep (map ppratom ts)
 
-ppratom :: Term -> Doc ann
+ppratom :: Term a -> Doc ann
 ppratom t@TmLit{} = pretty t
 ppratom t@TmVar{} = pretty t
 ppratom t = parens (pretty t)

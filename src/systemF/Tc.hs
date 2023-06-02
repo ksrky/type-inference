@@ -1,3 +1,5 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections #-}
 
@@ -10,30 +12,30 @@ import Prettyprinter
 
 import Coercion
 import InstGen
+import Misc
 import Monad
 import Syntax
 import Unify
-import Utils
 
-checkType :: (MonadFail m, MonadIO m) => Term -> Type -> m Term
+checkType :: (MonadFail m, MonadIO m) => Term 'In -> Type -> m (Term 'Out)
 checkType t ty = runTc (checkSigma t ty) =<< emptyEnv
 
-inferType :: (MonadFail m, MonadIO m) => Term -> m (Term, Type)
+inferType :: (MonadFail m, MonadIO m) => Term 'In -> m (Term 'Out, Type)
 inferType t = runTc (inferSigma t) =<< emptyEnv
 
 data Expected a = Infer (IORef a) | Check a
 
 -- | Type check of Rho
-checkRho :: (MonadIO m, MonadFail m) => Term -> Rho -> Tc m Term
+checkRho :: (MonadIO m, MonadFail m) => Term 'In -> Rho -> Tc m (Term 'Out)
 checkRho t ty = tcRho t (Check ty) >>= zonkTerm
 
-inferRho :: (MonadIO m, MonadFail m) => Term -> Tc m (Term, Rho)
+inferRho :: (MonadIO m, MonadFail m) => Term 'In -> Tc m (Term 'Out, Rho)
 inferRho t = do
         ref <- newTcRef (error "inferRho: empty result")
         t <- tcRho t (Infer ref) >>= zonkTerm
         (t,) <$> readTcRef ref
 
-tcRho :: (MonadIO m, MonadFail m) => Term -> Expected Rho -> Tc m Term
+tcRho :: (MonadIO m, MonadFail m) => Term 'In -> Expected Rho -> Tc m (Term 'Out)
 tcRho (TmLit LUnit) exp_ty = instSigma (TyCon TUnit) exp_ty >> return (TmLit LUnit)
 tcRho (TmVar n) exp_ty = do
         sigma <- lookupEnv n
@@ -45,30 +47,29 @@ tcRho (TmApp fun arg) exp_ty = do
         arg' <- checkSigma arg arg_ty
         coercion <- instSigma res_ty exp_ty
         return $ coercion .> TmApp fun' arg'
-tcRho (TmAbs var _ body) (Check exp_ty) = do
+tcRho (TmAbs var body) (Check exp_ty) = do
         (var_ty, body_ty) <- unifyFun exp_ty
         body' <- extendEnv var var_ty (checkRho body body_ty)
-        return $ TmAbs var (Just var_ty) body'
-tcRho (TmAbs var _ body) (Infer ref) = do
+        return $ TmAbs' var var_ty body'
+tcRho (TmAbs var body) (Infer ref) = do
         var_ty <- newTyVar
         (body', body_ty) <- extendEnv var var_ty (inferRho body)
         writeTcRef ref (TyFun var_ty body_ty)
-        return $ TmAbs var (Just var_ty) body'
+        return $ TmAbs' var var_ty body'
 tcRho (TmLet var rhs body) exp_ty = do
         (rhs', var_ty) <- inferSigma rhs
         body' <- extendEnv var var_ty $ tcRho body exp_ty
         return $ TmLet var rhs' body'
-tcRho _ _ = fail "Exception"
 
 -- | Type check of Sigma
-inferSigma :: (MonadFail m, MonadIO m) => Term -> Tc m (Term, Sigma)
+inferSigma :: (MonadFail m, MonadIO m) => Term 'In -> Tc m (Term 'Out, Sigma)
 inferSigma t = do
         (t, rho) <- inferRho t
         (tvs, sigma) <- generalize rho
         t' <- zonkTerm t -- reduce TyMeta
         return (genTrans tvs .> t', sigma)
 
-checkSigma :: (MonadIO m, MonadFail m) => Term -> Sigma -> Tc m Term
+checkSigma :: (MonadIO m, MonadFail m) => Term 'In -> Sigma -> Tc m (Term 'Out)
 checkSigma t sigma = do
         (coercion, skol_tvs, rho) <- skolemise sigma
         t' <- checkRho t rho

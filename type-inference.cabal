@@ -201,13 +201,13 @@ executable systemF
       Coercion
       InstGen
       Lexer
+      Misc
       Monad
       Parser
       Subst
       Syntax
       Tc
       Unify
-      Utils
       Paths_type_inference
   hs-source-dirs:
       src/systemF

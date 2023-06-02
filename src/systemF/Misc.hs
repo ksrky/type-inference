@@ -1,4 +1,7 @@
-module Utils where
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE GADTs #-}
+
+module Misc where
 
 import Control.Monad.IO.Class
 import Control.Monad.Reader
@@ -27,11 +30,11 @@ zonkType (TyMeta tv) = do
                         writeMetaTv tv ty'
                         return ty'
 
-zonkTerm :: MonadIO m => Term -> Tc m Term
+zonkTerm :: MonadIO m => Term 'Out -> Tc m (Term 'Out)
 zonkTerm (TmLit l) = return (TmLit l)
 zonkTerm (TmVar n) = return (TmVar n)
 zonkTerm (TmApp fun arg) = TmApp <$> zonkTerm fun <*> zonkTerm arg
-zonkTerm (TmAbs var mty body) = TmAbs var <$> zonkType `traverse` mty <*> zonkTerm body
+zonkTerm (TmAbs' var var_ty body) = TmAbs' var <$> zonkType var_ty <*> zonkTerm body
 zonkTerm (TmLet var rhs body) = TmLet var <$> zonkTerm rhs <*> zonkTerm body
 zonkTerm (TmTApp body ty_args) = TmTApp body <$> mapM zonkType ty_args
 zonkTerm (TmTAbs ty_vars body) = TmTAbs ty_vars <$> zonkTerm body
