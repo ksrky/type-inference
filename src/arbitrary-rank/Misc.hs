@@ -1,4 +1,4 @@
-module Utils where
+module Misc where
 
 import Control.Monad.IO.Class
 import Control.Monad.Reader
@@ -11,13 +11,8 @@ import Syntax
 zonkType :: MonadIO m => Type -> Tc m Type
 zonkType (TyVar tv) = return (TyVar tv)
 zonkType (TyCon tc) = return (TyCon tc)
-zonkType (TyFun arg res) = do
-        arg' <- zonkType arg
-        res' <- zonkType res
-        return (TyFun arg' res')
-zonkType (TyAll tvs ty) = do
-        ty' <- zonkType ty
-        return (TyAll tvs ty')
+zonkType (TyFun arg res) = TyFun <$> zonkType arg <*> zonkType res
+zonkType (TyAll tvs body) = TyAll tvs <$> zonkType body
 zonkType (TyMeta tv) = do
         mb_ty <- readMetaTv tv
         case mb_ty of

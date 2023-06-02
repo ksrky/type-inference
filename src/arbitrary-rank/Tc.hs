@@ -12,7 +12,7 @@ import InstGen
 import Monad
 import Syntax
 import Unify
-import Utils
+import Misc
 
 checkType :: (MonadFail m, MonadIO m) => Term -> Type -> m ()
 checkType t ty = runTc (checkSigma t ty) =<< emptyEnv
