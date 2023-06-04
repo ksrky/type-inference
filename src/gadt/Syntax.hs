@@ -1,4 +1,8 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 module Syntax where
 
@@ -13,32 +17,30 @@ import Prettyprinter
 -- | Name
 type Name = String
 
--- | Term
-data Term
-        = TmLit Lit
-        | TmVar Name
-        | TmApp Term Term
-        | TmAbs Name (Maybe Sigma) Term
-        | TmPAbs Pat (Maybe Sigma) Term
-        | TmLet Name Term Term
-        | TmTApp Term [Type]
-        | TmTAbs [TyVar] Term
-        deriving (Eq, Show)
+data InOut = In | Out
 
-data Lit
-        = LUnit
-        | LPair [Term]
-        | LTag Name Term
-        deriving (Eq, Show)
+-- | Term
+data Term (a :: InOut) where
+        TmLit :: Lit -> Term a
+        TmVar :: Name -> Term a
+        TmApp :: Term a -> Term a -> Term a
+        TmAbs :: Name -> Term 'In -> Term 'In
+        TmAbs' :: Name -> Sigma -> Term 'Out -> Term 'Out
+        TmLet :: Name -> Term a -> Term a -> Term a
+        TmTApp :: Term 'Out -> [Type] -> Term 'Out
+        TmTAbs :: [TyVar] -> Term 'Out -> Term 'Out
+
+deriving instance Eq (Term a)
+deriving instance Show (Term a)
+
+data Lit = LUnit deriving (Eq, Show)
 
 -- | Type
 data Type
         = TyVar TyVar
         | TyCon TyCon
         | TyFun Type Type
-        | TyAll [TyVar] Sigma
-        | TyApp Type Type
-        | TyAbs Name Type
+        | TyAll [TyVar] Rho
         | TyMeta MetaTv
         deriving (Eq, Show)
 
@@ -51,11 +53,7 @@ data TyVar
         | SkolemTv Name Uniq
         deriving (Eq, Ord, Show)
 
-data TyCon
-        = TUnit
-        | TPair [Tau]
-        | TSum [Type]
-        deriving (Eq, Show)
+data TyCon = TUnit deriving (Eq, Show)
 
 data MetaTv = MetaTv Uniq (IORef (Maybe Tau))
 
@@ -74,19 +72,6 @@ instance Ord MetaTv where
 instance Show MetaTv where
         show (MetaTv u _) = "$" ++ show u
 
--- Pattern
-data Pat
-        = PVar Name
-        | PWild
-        | PCon Name [Pat]
-        deriving (Eq, Show)
-
--- Command
-data Command
-        = TmBind Name Type Term
-        | TyBind Name Type
-        | TyCheck Term Type
-
 -- | Environment
 type Env = M.Map Name Sigma
 
@@ -96,29 +81,26 @@ type Env = M.Map Name Sigma
 
 -- | Pretty terms
 instance Pretty Lit where
-        pretty (LPair fields) = "()"
-        pretty (LTag lab arg) = pretty lab <+> pretty arg
+        pretty LUnit = "()"
 
-instance Pretty Term where
+instance Pretty (Term a) where
         pretty (TmLit l) = pretty l
         pretty (TmVar n) = pretty n
         pretty t@TmApp{} = pprapp t
-        pretty (TmAbs var Nothing body) = hcat [backslash, pretty var, dot, space, pretty body]
-        pretty (TmAbs var (Just var_ty) body) = hcat [backslash, pretty var, colon, pretty var_ty, dot, space, pretty body]
-        pretty (TmPAbs pat Nothing body) = hcat [backslash, pretty pat, dot, space, pretty body]
-        pretty (TmPAbs pat (Just pat_ty) body) = hcat [backslash, pretty pat, colon, pretty pat_ty, dot, space, pretty body]
+        pretty (TmAbs var body) = hcat [backslash, pretty var, dot, pretty body]
+        pretty (TmAbs' var var_ty body) = hcat [backslash, pretty var, colon, pretty var_ty, dot <+> pretty body]
         pretty (TmLet var rhs body) = hsep ["let", pretty var, equals, pretty rhs, "in", pretty body]
-        pretty (TmTApp body ty_args) = ppratom body <+> hsep (map (\x -> "@" <> pretty x) ty_args)
-        pretty (TmTAbs ty_vars body) = "Λ" <> hsep (map (\x -> pretty x <> dot) ty_vars) <+> pretty body
+        pretty (TmTApp body ty_args) = ppratom body <+> brackets (hsep (map pretty ty_args))
+        pretty (TmTAbs tyvars body) = hcat ["Λ", hsep (map pretty tyvars), dot, space, pretty body]
 
-pprapp :: Term -> Doc ann
+pprapp :: Term a -> Doc ann
 pprapp t = walk t []
     where
-        walk :: Term -> [Term] -> Doc ann
+        walk :: Term a -> [Term a] -> Doc ann
         walk (TmApp t1 t2) ts = walk t1 (t2 : ts)
         walk t' ts = ppratom t' <+> sep (map ppratom ts)
 
-ppratom :: Term -> Doc ann
+ppratom :: Term a -> Doc ann
 ppratom t@TmLit{} = pretty t
 ppratom t@TmVar{} = pretty t
 ppratom t = parens (pretty t)
@@ -129,32 +111,23 @@ instance Pretty TyVar where
         pretty (SkolemTv n u) = pretty n <> pretty u
 
 instance Pretty TyCon where
-        pretty (TPair fields) = "()"
+        pretty TUnit = "()"
 
 instance Pretty Type where
         pretty (TyVar tv) = pretty tv
         pretty (TyCon tc) = pretty tc
         pretty (TyFun arg res) = hsep [pprty FunPrec arg, "->", pprty TopPrec res]
-        pretty (TyAll tvs body) = hcat ["∀", hsep (map pretty tvs), dot, space, pretty body]
-        pretty (TyApp fun arg) = pretty fun <+> pprty AppPrec arg
-        pretty (TyAbs var body) = hcat [backslash, pretty var, dot, space, pretty body]
+        pretty (TyAll tvs ty) = hsep ["∀" <> hsep (map pretty tvs) <> dot, pretty ty]
         pretty (TyMeta tv) = viaShow tv
 
-data Prec = TopPrec | FunPrec | AppPrec | AtomPrec deriving (Enum)
+data Prec = TopPrec | FunPrec | AtomPrec deriving (Enum)
 
 precty :: Type -> Prec
 precty TyAll{} = TopPrec
 precty TyFun{} = FunPrec
-precty TyApp{} = AppPrec
 precty _ = AtomPrec
 
 pprty :: Prec -> Type -> Doc ann
 pprty p ty
         | fromEnum p >= fromEnum (precty ty) = parens (pretty ty)
         | otherwise = pretty ty
-
-instance Pretty Pat where
-        pretty (PVar var) = pretty var
-        pretty PWild = "_"
-        pretty (PCon con []) = pretty con
-        pretty (PCon con pats) = parens $ hcat [lparen, pretty con, space, hsep (map pretty pats)]

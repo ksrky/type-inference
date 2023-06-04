@@ -13,7 +13,5 @@ apply :: Subst -> Type -> Type
 apply s ty@(TyVar tv) = M.findWithDefault ty tv s
 apply _ ty@TyCon{} = ty
 apply s (TyFun ty1 ty2) = TyFun (apply s ty1) (apply s ty2)
-apply s (TyAll tvs ty) = TyAll tvs $ apply (foldr M.delete s tvs) ty
-apply s (TyApp ty1 ty2) = TyApp (apply s ty1) (apply s ty2)
-apply s (TyAbs x ty) = TyAbs x (apply s ty)
+apply s (TyAll tvs t) = TyAll tvs $ apply (foldr M.delete s tvs) t
 apply _ ty@TyMeta{} = ty

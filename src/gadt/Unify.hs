@@ -7,9 +7,9 @@ import Control.Monad.IO.Class
 import qualified Data.Set as S
 import Prettyprinter
 
+import Misc
 import Monad
 import Syntax
-import Utils
 
 unify :: (MonadFail m, MonadIO m) => Tau -> Tau -> Tc m ()
 unify (TyVar tv1) (TyVar tv2) | tv1 == tv2 = return ()

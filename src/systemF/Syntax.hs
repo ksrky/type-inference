@@ -40,7 +40,7 @@ data Type
         = TyVar TyVar
         | TyCon TyCon
         | TyFun Type Type
-        | TyAll [TyVar] Sigma
+        | TyAll [TyVar] Rho
         | TyMeta MetaTv
         deriving (Eq, Show)
 
