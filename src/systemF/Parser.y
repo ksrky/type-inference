@@ -1,4 +1,5 @@
 {
+{-# LANGUAGE DataKinds #-}
 module Parser where
 
 import Lexer
@@ -27,20 +28,20 @@ Var             	{ TokName $$ }
 
 %%
 
-Expr 	:: { (Term, Maybe Type) }
+Expr 	:: { (Term 'In, Maybe Type) }
 	: Term '::' Type				{ ($1, Just $3) }
 	| Term						{ ($1, Nothing) }
 
-Term	:: { Term }
-	: '\\' Var '->' Term				{ TmAbs $2 Nothing $4 }
+Term	:: { Term 'In }
+	: '\\' Var '->' Term				{ TmAbs $2 $4 }
 	| 'let' Var '=' Term 'in' Term			{ TmLet $2 $4 $6 }
 	| Term2						{ $1 }
 
-Term2	:: { Term }
+Term2	:: { Term 'In }
 	: Term2 Term1					{ TmApp $1 $2 }
 	| Term1						{ $1 }
 
-Term1	:: { Term }
+Term1	:: { Term 'In }
 	: Lit						{ TmLit $1 }				
 	| Var						{ TmVar $1 }
 	| '(' Term ')'					{ $2 }
