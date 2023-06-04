@@ -19,7 +19,7 @@ type Name = String
 
 data InOut = In | Out
 
--- | Term
+-- | Terms
 data Term (a :: InOut) where
         TmLit :: Lit -> Term a
         TmVar :: Name -> Term a
@@ -27,15 +27,25 @@ data Term (a :: InOut) where
         TmAbs :: Name -> Term 'In -> Term 'In
         TmAbs' :: Name -> Sigma -> Term 'Out -> Term 'Out
         TmLet :: Name -> Term a -> Term a -> Term a
+        TmCase :: Term a -> [(Pat, Term a)] -> Term a
         TmTApp :: Term 'Out -> [Type] -> Term 'Out
         TmTAbs :: [TyVar] -> Term 'Out -> Term 'Out
 
 deriving instance Eq (Term a)
 deriving instance Show (Term a)
 
+-- | Literals
 data Lit = LUnit deriving (Eq, Show)
 
--- | Type
+-- Patterns
+data Pat
+        = PCon Name [Pat]
+        | PVar Name
+        | PLit Lit
+        | PWild
+        deriving (Eq, Show)
+
+-- | Types
 data Type
         = TyVar TyVar
         | TyCon TyCon
@@ -53,15 +63,39 @@ data TyVar
         | SkolemTv Name Uniq
         deriving (Eq, Ord, Show)
 
+
+tyVarName :: TyVar -> Name
+tyVarName (BoundTv n) = n
+tyVarName (SkolemTv n _) = n
+
 data TyCon = TUnit deriving (Eq, Show)
 
 data MetaTv = MetaTv Uniq (IORef (Maybe Tau))
 
 type Uniq = Int
 
-tyVarName :: TyVar -> Name
-tyVarName (BoundTv n) = n
-tyVarName (SkolemTv n _) = n
+-- | Clause
+type Clause a = [([Pat], Term a)]
+
+-- | Bindings
+data Bind a
+        = ValBind Name [Clause a]
+        | DatBind Name [TyVar] [(Name, Type)]
+        deriving (Eq, Show)
+
+-- | Specifications
+data Spec
+        = ValSpec Name Type
+        | TypSpec Name
+        deriving (Eq, Show)
+
+-- | Declarations
+data Decl a
+        = BindDecl (Bind a)
+        | SpecDecl Spec
+        deriving (Eq, Show)
+
+type Program a = [Decl a]
 
 instance Eq MetaTv where
         (MetaTv u1 _) == (MetaTv u2 _) = u1 == u2
