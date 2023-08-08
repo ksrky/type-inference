@@ -23,52 +23,6 @@ source-repository head
   type: git
   location: https://github.com/ksrky/type-inference
 
-library
-  other-modules:
-      Paths_type_inference
-  hs-source-dirs:
-      src
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-name-shadowing
-  build-depends:
-      array
-    , base >=4.7 && <5
-    , containers
-    , haskeline
-    , mtl
-    , prettyprinter
-    , safe-exceptions
-    , transformers
-  default-language: Haskell2010
-
-executable GADT
-  main-is: Main.hs
-  other-modules:
-      Coercion
-      InstGen
-      Lexer
-      Misc
-      Monad
-      Parser
-      Subst
-      Syntax
-      Tc
-      Unify
-      Paths_type_inference
-  hs-source-dirs:
-      src/gadt
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-name-shadowing -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      array
-    , base >=4.7 && <5
-    , containers
-    , haskeline
-    , mtl
-    , prettyprinter
-    , safe-exceptions
-    , transformers
-    , type-inference
-  default-language: Haskell2010
-
 executable algorithmJ
   main-is: Main.hs
   other-modules:
@@ -91,7 +45,6 @@ executable algorithmJ
     , prettyprinter
     , safe-exceptions
     , transformers
-    , type-inference
   default-language: Haskell2010
 
 executable algorithmM
@@ -115,7 +68,6 @@ executable algorithmM
     , prettyprinter
     , safe-exceptions
     , transformers
-    , type-inference
   default-language: Haskell2010
 
 executable algorithmW
@@ -139,7 +91,6 @@ executable algorithmW
     , prettyprinter
     , safe-exceptions
     , transformers
-    , type-inference
   default-language: Haskell2010
 
 executable algorithmZ
@@ -164,7 +115,6 @@ executable algorithmZ
     , prettyprinter
     , safe-exceptions
     , transformers
-    , type-inference
   default-language: Haskell2010
 
 executable arbitrary-rank
@@ -192,7 +142,6 @@ executable arbitrary-rank
     , prettyprinter
     , safe-exceptions
     , transformers
-    , type-inference
   default-language: Haskell2010
 
 executable systemF
@@ -221,5 +170,4 @@ executable systemF
     , prettyprinter
     , safe-exceptions
     , transformers
-    , type-inference
   default-language: Haskell2010
