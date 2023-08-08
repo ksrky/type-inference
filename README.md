@@ -36,7 +36,7 @@ Type inference of arbitrary rank types and System F translation
 
 - Simon Peyton Jones, Dimitrios Vytiniotis, Stephanie Weirich, Mark Shields. (2005). [_Practical type inference for arbitrary-rank types_](https://www.microsoft.com/en-us/research/publication/practical-type-inference-for-arbitrary-rank-types/).
 
-## [GADT](https://github.com/ksrky/type-inference/tree/master/src/GADT)
+## GADT
 
 - Simon Peyton Jones, Dimitrios Vytiniotis, Stephanie Weirich, Geoffrey Washburn. (2005). [_Simple unification-based type inference for GADTs_]()
 - Tom Schrijvers, Simon Peyton Jones, Martin Sulzmann, Dimitrios Vytiniotis. (2009). [_Complete and Decidable Type Inference for GADTs_]()
