@@ -27,7 +27,6 @@ data Term (a :: InOut) where
         TmAbs :: Name -> Term 'In -> Term 'In
         TmAbs' :: Name -> Sigma -> Term 'Out -> Term 'Out
         TmLet :: Name -> Term a -> Term a -> Term a
-        TmCase :: Term a -> [(Pat, Term a)] -> Term a
         TmTApp :: Term 'Out -> [Type] -> Term 'Out
         TmTAbs :: [TyVar] -> Term 'Out -> Term 'Out
 
@@ -36,14 +35,6 @@ deriving instance Show (Term a)
 
 -- | Literals
 data Lit = LUnit deriving (Eq, Show)
-
--- Patterns
-data Pat
-        = PCon Name [Pat]
-        | PVar Name
-        | PLit Lit
-        | PWild
-        deriving (Eq, Show)
 
 -- | Types
 data Type
@@ -73,29 +64,6 @@ data MetaTv = MetaTv Uniq (IORef (Maybe Tau))
 
 type Uniq = Int
 
--- | Clause
-type Clause a = ([Pat], Term a)
-
--- | Bindings
-data Bind a
-        = ValBind Name [Clause a]
-        | DatBind Name [TyVar] [(Name, Type)]
-        deriving (Eq, Show)
-
--- | Specifications
-data Spec
-        = ValSpec Name Type
-        | TypSpec Name
-        deriving (Eq, Show)
-
--- | Declarations
-data Decl a
-        = BindDecl (Bind a)
-        | SpecDecl Spec
-        deriving (Eq, Show)
-
-type Program a = [Decl a]
-
 instance Eq MetaTv where
         (MetaTv u1 _) == (MetaTv u2 _) = u1 == u2
 
@@ -124,8 +92,7 @@ instance Pretty (Term a) where
         pretty (TmAbs' var var_ty body) = hcat [backslash, pretty var, colon, pretty var_ty, dot <+> pretty body]
         pretty (TmLet var rhs body) = hsep ["let", pretty var, equals, pretty rhs, "in", pretty body]
         pretty (TmTApp body ty_args) = ppratom body <+> brackets (hsep (map pretty ty_args))
-        pretty (TmTAbs tyvars body) = hcat ["Λ", hsep (map pretty tyvars), dot, space, pretty body]
-        pretty (TmCase match alts) = hsep ["case", pretty match, "of", braces (concatWith (surround $ semi <> space) (map (\(p, e) -> hsep [pretty p, "->", pretty e]) alts))]
+        pretty (TmTAbs tyvars body) = hcat ["/\\", hsep (map pretty tyvars), dot, space, pretty body]
 
 pprapp :: Term a -> Doc ann
 pprapp t = walk t []
@@ -138,12 +105,6 @@ ppratom :: Term a -> Doc ann
 ppratom t@TmLit{} = pretty t
 ppratom t@TmVar{} = pretty t
 ppratom t = parens (pretty t)
-
-instance Pretty Pat where
-        pretty PWild = "_"
-        pretty (PVar var) = pretty var
-        pretty (PLit lit) = pretty lit
-        pretty (PCon con pats) = hsep (pretty con : map pretty pats)
 
 -- | Pretty types
 instance Pretty TyVar where

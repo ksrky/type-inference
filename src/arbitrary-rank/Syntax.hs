@@ -42,15 +42,15 @@ data TyVar
         | SkolemTv Name Uniq
         deriving (Eq, Ord, Show)
 
+tyVarName :: TyVar -> Name
+tyVarName (BoundTv n) = n
+tyVarName (SkolemTv n _) = n
+
 data TyCon = TUnit deriving (Eq, Show)
 
 data MetaTv = MetaTv Uniq (IORef (Maybe Tau))
 
 type Uniq = Int
-
-tyVarName :: TyVar -> Name
-tyVarName (BoundTv n) = n
-tyVarName (SkolemTv n _) = n
 
 -- Class instances
 instance Eq MetaTv where
