@@ -59,7 +59,7 @@ tcRho (TmAbs var body) (Infer ref) = do
 tcRho (TmLet var rhs body) exp_ty = do
         (rhs', var_ty) <- inferSigma rhs
         body' <- extendEnv var var_ty $ tcRho body exp_ty
-        return $ TmLet var rhs' body'
+        return $ TmLet' var var_ty rhs' body'
 
 -- | Type check of Sigma
 inferSigma :: (MonadFail m, MonadIO m) => Term 'In -> Tc m (Term 'Out, Sigma)

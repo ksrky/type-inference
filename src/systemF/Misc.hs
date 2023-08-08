@@ -36,6 +36,7 @@ zonkTerm (TmVar n) = return (TmVar n)
 zonkTerm (TmApp fun arg) = TmApp <$> zonkTerm fun <*> zonkTerm arg
 zonkTerm (TmAbs' var var_ty body) = TmAbs' var <$> zonkType var_ty <*> zonkTerm body
 zonkTerm (TmLet var rhs body) = TmLet var <$> zonkTerm rhs <*> zonkTerm body
+zonkTerm (TmLet' var var_ty rhs body) = TmLet' var <$> zonkType var_ty <*> zonkTerm rhs <*> zonkTerm body
 zonkTerm (TmTApp body ty_args) = TmTApp body <$> mapM zonkType ty_args
 zonkTerm (TmTAbs ty_vars body) = TmTAbs ty_vars <$> zonkTerm body
 

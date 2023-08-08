@@ -27,6 +27,7 @@ data Term (a :: InOut) where
         TmAbs :: Name -> Term 'In -> Term 'In
         TmAbs' :: Name -> Sigma -> Term 'Out -> Term 'Out
         TmLet :: Name -> Term a -> Term a -> Term a
+        TmLet' :: Name -> Type -> Term 'Out -> Term 'Out -> Term 'Out
         TmTApp :: Term 'Out -> [Type] -> Term 'Out
         TmTAbs :: [TyVar] -> Term 'Out -> Term 'Out
 
@@ -89,9 +90,10 @@ instance Pretty (Term a) where
         pretty (TmVar n) = pretty n
         pretty t@TmApp{} = pprapp t
         pretty (TmAbs var body) = hcat [backslash, pretty var, dot, pretty body]
-        pretty (TmAbs' var var_ty body) = hcat [backslash, pretty var, colon, pretty var_ty, dot <+> pretty body]
+        pretty (TmAbs' var var_ty body) = hsep [backslash <> pretty var, colon, pretty var_ty <> dot, pretty body]
         pretty (TmLet var rhs body) = hsep ["let", pretty var, equals, pretty rhs, "in", pretty body]
-        pretty (TmTApp body ty_args) = ppratom body <+> brackets (hsep (map pretty ty_args))
+        pretty (TmLet' var var_ty rhs body) = hsep ["let", pretty var, colon, pretty var_ty, equals, pretty rhs, "in", pretty body]
+        pretty (TmTApp body ty_args) = ppratom body <+> brackets (hsep (map (pprtyatom TopPrec) ty_args))
         pretty (TmTAbs tyvars body) = hcat ["/\\", hsep (map pretty tyvars), dot, space, pretty body]
 
 pprapp :: Term a -> Doc ann
@@ -117,7 +119,7 @@ instance Pretty TyCon where
 instance Pretty Type where
         pretty (TyVar tv) = pretty tv
         pretty (TyCon tc) = pretty tc
-        pretty (TyFun arg res) = hsep [pprty FunPrec arg, "->", pprty TopPrec res]
+        pretty (TyFun arg res) = hsep [pprtyatom FunPrec arg, "->", pprtyatom TopPrec res]
         pretty (TyAll tvs ty) = hsep ["∀" <> hsep (map pretty tvs) <> dot, pretty ty]
         pretty (TyMeta tv) = viaShow tv
 
@@ -128,7 +130,7 @@ precty TyAll{} = TopPrec
 precty TyFun{} = FunPrec
 precty _ = AtomPrec
 
-pprty :: Prec -> Type -> Doc ann
-pprty p ty
+pprtyatom :: Prec -> Type -> Doc ann
+pprtyatom p ty
         | fromEnum p >= fromEnum (precty ty) = parens (pretty ty)
         | otherwise = pretty ty
