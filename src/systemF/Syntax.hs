@@ -63,7 +63,6 @@ data TyVar
         | SkolemTv Name Uniq
         deriving (Eq, Ord, Show)
 
-
 tyVarName :: TyVar -> Name
 tyVarName (BoundTv n) = n
 tyVarName (SkolemTv n _) = n
@@ -75,7 +74,7 @@ data MetaTv = MetaTv Uniq (IORef (Maybe Tau))
 type Uniq = Int
 
 -- | Clause
-type Clause a = [([Pat], Term a)]
+type Clause a = ([Pat], Term a)
 
 -- | Bindings
 data Bind a
@@ -126,6 +125,7 @@ instance Pretty (Term a) where
         pretty (TmLet var rhs body) = hsep ["let", pretty var, equals, pretty rhs, "in", pretty body]
         pretty (TmTApp body ty_args) = ppratom body <+> brackets (hsep (map pretty ty_args))
         pretty (TmTAbs tyvars body) = hcat ["Λ", hsep (map pretty tyvars), dot, space, pretty body]
+        pretty (TmCase match alts) = hsep ["case", pretty match, "of", braces (concatWith (surround $ semi <> space) (map (\(p, e) -> hsep [pretty p, "->", pretty e]) alts))]
 
 pprapp :: Term a -> Doc ann
 pprapp t = walk t []
@@ -138,6 +138,12 @@ ppratom :: Term a -> Doc ann
 ppratom t@TmLit{} = pretty t
 ppratom t@TmVar{} = pretty t
 ppratom t = parens (pretty t)
+
+instance Pretty Pat where
+        pretty PWild = "_"
+        pretty (PVar var) = pretty var
+        pretty (PLit lit) = pretty lit
+        pretty (PCon con pats) = hsep (pretty con : map pretty pats)
 
 -- | Pretty types
 instance Pretty TyVar where

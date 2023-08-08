@@ -14,7 +14,7 @@ import Syntax
 %token
 
 'data'			{ TokData }
-'func'			{ TokFunc }
+'fun'			{ TokFun }
 'let'			{ TokLet }
 'in'			{ TokIn }
 'where'			{ TokWhere }
@@ -34,15 +34,30 @@ Var             	{ TokName $$ }
 %%
 
 Decls   :: { [Decl] }
-        : Decl ';' Decls                                { $1 : $3 }
-        | Decl                                          { [$1] }
+        : Bind ';' Decls                                { $1 : $3 }
+        | Spec ';' Decls                                { $1 : $3 }
+        | {- empty -}                                   { [] }
 
 Bind    :: { Bind }
-        : 'func' Var 'where' Clauses                    { ValBind $2 $4 }
-        | 'data' Var 'where' Constrs                    { DatBind $2 $4 }
+        : 'fun' Var 'where' '{' Clauses '}'             { ValBind $2 $4 }
+        | 'data' Var 'where' '{' Constrs '}'            { DatBind $2 $4 }
 
-Clause  :: { Clause }
-        : Pat
+Spec    :: { Spec }
+        : 'fun' Var ':' Type                            { ValBind $2 $4 }
+        | 'data' Var ':' Kind                           { DatBind $2 $4 }
+
+Clauses :: { [Clause 'In] }
+        : Clause ';' Clauses                            { $1 : $3 }
+        | Clause                                        { [$1] }
+
+Clause  :: { Clause 'In }
+        : Pats Term                                     { Clause $1 $2 }
+
+Constrs :: { [(Name, Type)] }
+        : Constr ';' Constrs                            {}
+
+Constr  :: { (Name, Type) }
+        : Var ':' Type                                  { ($1, $3) }
 
 -- * Terms
 Term	:: { Term 'In }
@@ -61,9 +76,9 @@ Term1	:: { Term 'In }
 	| '(' Term ')'					{ $2 }
 
 Alts    :: { [(Pat, Term 'In)] }
-        : Alt ';' Alts
-        | Alt
-        | {- empty -}
+        : Alt ';' Alts                                  { $1 : $3 }
+        | Alt                                           { [$1] }
+        | {- empty -}                                   { [] }
 
 Alt     :: { (Pat, Term 'In)}
         : Pat '->' Term                                 { ($1, $3) }
