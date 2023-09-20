@@ -66,3 +66,13 @@ freeTvs TyCon{} = S.empty
 freeTvs (TyFun arg res) = freeTvs arg `S.union` freeTvs res
 freeTvs (TyAll tvs ty) = S.fromList tvs `S.union` freeTvs ty
 freeTvs TyMeta{} = S.empty
+
+substTvs :: [TyVar] -> [Type] -> Type -> Type
+substTvs tvs tys ty = let s = M.fromList (zip tvs tys) in apply s ty
+
+apply :: M.Map TyVar Tau -> Type -> Type
+apply s ty@(TyVar tv) = M.findWithDefault ty tv s
+apply _ ty@TyCon{} = ty
+apply s (TyFun ty1 ty2) = TyFun (apply s ty1) (apply s ty2)
+apply s (TyAll tvs t) = TyAll tvs $ apply (foldr M.delete s tvs) t
+apply _ ty@TyMeta{} = ty

@@ -39,18 +39,18 @@ tcRho :: (MonadIO m, MonadFail m) => Term 'In -> Expected Rho -> Tc m (Term 'Out
 tcRho (TmLit LUnit) exp_ty = instSigma (TyCon TUnit) exp_ty >> return (TmLit LUnit)
 tcRho (TmVar n) exp_ty = do
         sigma <- lookupEnv n
-        coercion <- instSigma sigma exp_ty
-        return $ coercion .> TmVar n
+        coer <- instSigma sigma exp_ty
+        return $ unCoer coer $ TmVar n
 tcRho (TmApp fun arg) exp_ty = do
         (fun', fun_ty) <- inferRho fun
         (arg_ty, res_ty) <- unifyFun fun_ty
         arg' <- checkSigma arg arg_ty
-        coercion <- instSigma res_ty exp_ty
-        return $ coercion .> TmApp fun' arg'
+        coer <- instSigma res_ty exp_ty
+        return $ unCoer coer $ TmApp fun' arg'
 tcRho (TmAbs var body) (Check exp_ty) = do
-        (var_ty, body_ty) <- unifyFun exp_ty
-        body' <- extendEnv var var_ty (checkRho body body_ty)
-        return $ TmAbs' var var_ty body'
+        (arg_ty, res_ty) <- unifyFun exp_ty
+        body' <- extendEnv var arg_ty (checkRho body res_ty)
+        return $ TmAbs' var arg_ty body'
 tcRho (TmAbs var body) (Infer ref) = do
         var_ty <- newTyVar
         (body', body_ty) <- extendEnv var var_ty (inferRho body)
@@ -67,33 +67,33 @@ inferSigma t = do
         (t, rho) <- inferRho t
         (tvs, sigma) <- generalize rho
         t' <- zonkTerm t -- reduce TyMeta
-        return (genTrans tvs .> t', sigma)
+        return (unCoer (genTrans tvs) t', sigma)
 
 checkSigma :: (MonadIO m, MonadFail m) => Term 'In -> Sigma -> Tc m (Term 'Out)
 checkSigma t sigma = do
-        (coercion, skol_tvs, rho) <- skolemise sigma
+        (coer, sktvs, rho) <- skolemise sigma
         t' <- checkRho t rho
         env_tys <- getEnvTypes
         esc_tvs <- S.union <$> getFreeTvs sigma <*> (mconcat <$> mapM getFreeTvs env_tys)
-        let bad_tvs = filter (`elem` esc_tvs) skol_tvs
+        let bad_tvs = filter (`elem` esc_tvs) sktvs
         unless (null bad_tvs) $ failTc "Type not polymorphic enough"
-        return $ coercion .> genTrans skol_tvs .> t'
+        return $ unCoer (coer <> genTrans sktvs) t'
 
 -- | Subsumption checking
 subsCheck :: (MonadIO m, MonadFail m) => Sigma -> Sigma -> Tc m Coercion
 subsCheck sigma1 sigma2 = do
-        (coercion1, skol_tvs, rho2) <- skolemise sigma2
-        coercion2 <- subsCheckRho sigma1 rho2
+        (coer1, skol_tvs, rho2) <- skolemise sigma2
+        coer2 <- subsCheckRho sigma1 rho2
         esc_tvs <- S.union <$> getFreeTvs sigma1 <*> getFreeTvs sigma2
         let bad_tvs = S.fromList skol_tvs `S.intersection` esc_tvs
         unless (null bad_tvs) $ failTc $ hsep ["Subsumption check failed: ", pretty sigma1 <> comma, pretty sigma2]
-        return $ deepskolTrans skol_tvs coercion1 coercion2
+        return $ deepskolTrans skol_tvs coer1 coer2
 
 subsCheckRho :: (MonadIO m, MonadFail m) => Sigma -> Rho -> Tc m Coercion
 subsCheckRho sigma1@TyAll{} rho2 = do
-        (coercion1, rho1) <- instantiate sigma1
-        coercion2 <- subsCheckRho rho1 rho2
-        return (coercion2 <.> coercion1)
+        (coer1, rho1) <- instantiate sigma1
+        coer2 <- subsCheckRho rho1 rho2
+        return (coer2 <> coer1)
 subsCheckRho rho1 (TyFun a2 r2) = do
         (a1, r1) <- unifyFun rho1
         subsCheckFun a1 r1 a2 r2
@@ -114,6 +114,6 @@ subsCheckFun a1 r1 a2 r2 = do
 instSigma :: (MonadIO m, MonadFail m) => Sigma -> Expected Rho -> Tc m Coercion
 instSigma sigma (Check rho) = subsCheckRho sigma rho
 instSigma sigma (Infer r) = do
-        (coercion, rho) <- instantiate sigma
+        (coer, rho) <- instantiate sigma
         writeTcRef r rho
-        return coercion
+        return coer

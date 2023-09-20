@@ -153,7 +153,6 @@ executable systemF
       Misc
       Monad
       Parser
-      Subst
       Syntax
       Tc
       Unify
