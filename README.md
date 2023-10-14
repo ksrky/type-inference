@@ -47,7 +47,7 @@ Type inference of arbitrary rank types and System F translation
 - Simon Peyton Jones, Dimitrios Vytiniotis, Stephanie Weirich, Mark Shields. (2005). [_Practical type inference for arbitrary-rank types_](https://www.microsoft.com/en-us/research/publication/practical-type-inference-for-arbitrary-rank-types/).
   Type inference algorithm for arbitrary-rank types
 
-Type `stack exec systemF` to enter interactive shell. If you input an implicitly typed expression, then it is returned explicity typed. For example:
+Type `stack exec systemF` to enter the interactive shell. If you input an semi-typed expression, then it is translated to System F-like term. For example:
 
 ```
 $ stack exec systemF
