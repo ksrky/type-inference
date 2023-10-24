@@ -6,6 +6,7 @@ author: "ksrk"
 maintainer: "example@example.com"
 copyright: "2022 ksrk"
 
+default-language: Haskell2010
 extra-source-files:
   - README.md
   - CHANGELOG.md
@@ -62,3 +63,6 @@ executables:
   systemF:
     main: Main.hs
     source-dirs: src/systemF
+  systemF:
+    main: Main.hs
+    source-dirs: src/arbitrary-typed
