@@ -83,7 +83,8 @@ instance Pretty Term where
         pretty (TmLit l) = pretty l
         pretty (TmVar n) = pretty n
         pretty t@TmApp{} = pprapp t
-        pretty (TmAbs var _ body) = hcat [backslash, pretty var, dot, pretty body]
+        pretty (TmAbs var Nothing body) = hcat [backslash, pretty var, dot, space, pretty body]
+        pretty (TmAbs var (Just var_ty) body) = hsep [backslash <> pretty var, colon, pretty var_ty <> dot, pretty body]
         pretty (TmTApp body ty_args) = ppratom body <+> brackets (hsep (map (pprtyatom TopPrec) ty_args))
         pretty (TmTAbs tyvars body) = hcat ["/\\", hsep (map pretty tyvars), dot, space, pretty body]
 

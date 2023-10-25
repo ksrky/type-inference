@@ -15,14 +15,15 @@ $white+                 ;
 
 \=                      { \_ -> TokEq }
 \\                      { \_ -> TokBack }
+\/\\                    { \_ -> TokBiglam }
 \.                      { \_ -> TokDot }
 \-\>                    { \_ -> TokArrow }
 \:                      { \_ -> TokColon }
 \∀                      { \_ -> TokAll }
-\↑                      { \_ -> TokUp }
-\↓                      { \_ -> TokDown }
 \(                      { \_ -> TokLParen }
 \)                      { \_ -> TokRParen }
+\[                      { \_ -> TokLBrack }
+\]                      { \_ -> TokRBrack }
 
 @id                     { \s -> TokName s }
 
@@ -30,14 +31,15 @@ $white+                 ;
 data Token
     = TokEq
     | TokBack
+    | TokBiglam
     | TokDot
     | TokArrow
     | TokColon
     | TokAll
-    | TokUp
-    | TokDown
     | TokLParen
     | TokRParen
+    | TokLBrack
+    | TokRBrack
     | TokName String
     deriving (Eq, Show)
 }

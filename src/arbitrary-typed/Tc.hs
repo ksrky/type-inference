@@ -17,6 +17,18 @@ import Monad
 import Syntax
 import Unify
 
+checkType :: (MonadFail m, MonadIO m) => Term -> Type -> m Term
+checkType t ty = runTc (zonkTerm =<< checkSigma t ty) =<< emptyEnv
+
+inferType :: (MonadFail m, MonadIO m) => Term -> m (Term, Type)
+inferType t =
+        runTc
+                ( do
+                        (t', ty) <- inferSigma t
+                        (,) <$> zonkTerm t' <*> zonkType ty
+                )
+                =<< emptyEnv
+
 data Expected a = Infer (IORef a) | Check a
 
 checkRho :: (MonadIO m, MonadFail m) => Term -> Rho -> Tc m Term

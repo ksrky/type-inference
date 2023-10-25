@@ -143,6 +143,33 @@ executable arbitrary-rank
     , transformers
   default-language: Haskell2010
 
+executable arbitrary-typed
+  main-is: Main.hs
+  other-modules:
+      Coercion
+      InstGen
+      Lexer
+      Misc
+      Monad
+      Parser
+      Syntax
+      Tc
+      Unify
+      Paths_type_inference
+  hs-source-dirs:
+      src/arbitrary-typed
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-name-shadowing -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      array
+    , base >=4.7 && <5
+    , containers
+    , haskeline
+    , mtl
+    , prettyprinter
+    , safe-exceptions
+    , transformers
+  default-language: Haskell2010
+
 executable systemF
   main-is: Main.hs
   other-modules:
@@ -151,12 +178,13 @@ executable systemF
       Lexer
       Misc
       Monad
+      Parser
       Syntax
       Tc
       Unify
       Paths_type_inference
   hs-source-dirs:
-      src/arbitrary-typed
+      src/systemF
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-name-shadowing -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       array
