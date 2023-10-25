@@ -20,16 +20,10 @@ type Name = String
 data Term
         = TmLit Lit
         | TmVar Name
-        | TmApp Term Poly
-        | TmAbs Name (Maybe Sigma) Poly
-        | TmInst Poly
-        deriving (Eq, Show)
-
--- | Polymorphic terms
-data Poly
-        = TmTApp Poly [Tau]
-        | TmTAbs [TyVar] Poly
-        | TmGen Term
+        | TmApp Term Term
+        | TmAbs Name (Maybe Sigma) Term
+        | TmTApp Term [Tau]
+        | TmTAbs [TyVar] Term
         deriving (Eq, Show)
 
 -- | Literals
@@ -73,7 +67,9 @@ instance Show MetaTv where
         show (MetaTv u _) = "$" ++ show u
 
 -- | Environment
-type Env = M.Map Name Sigma
+type VarEnv = M.Map Name Sigma
+
+type TyvarEnv = [Name]
 
 ----------------------------------------------------------------
 -- Pretty printing
@@ -88,29 +84,20 @@ instance Pretty Term where
         pretty (TmVar n) = pretty n
         pretty t@TmApp{} = pprapp t
         pretty (TmAbs var _ body) = hcat [backslash, pretty var, dot, pretty body]
-        pretty (TmInst poly) = hcat ["↓", pretty poly]
-
-instance Pretty Poly where
-        pretty (TmTApp body ty_args) = ppratomPoly body <+> brackets (hsep (map (pprtyatom TopPrec) ty_args))
+        pretty (TmTApp body ty_args) = ppratom body <+> brackets (hsep (map (pprtyatom TopPrec) ty_args))
         pretty (TmTAbs tyvars body) = hcat ["/\\", hsep (map pretty tyvars), dot, space, pretty body]
-        pretty (TmGen term) = hcat ["↑", pretty term]
 
 pprapp :: Term -> Doc ann
 pprapp t = walk t []
     where
-        walk :: Term -> [Poly] -> Doc ann
+        walk :: Term -> [Term] -> Doc ann
         walk (TmApp t1 t2) ts = walk t1 (t2 : ts)
-        walk t' ts = ppratom t' <+> sep (map ppratomPoly ts)
+        walk t' ts = ppratom t' <+> sep (map ppratom ts)
 
 ppratom :: Term -> Doc ann
 ppratom t@TmLit{} = pretty t
 ppratom t@TmVar{} = pretty t
 ppratom t = parens (pretty t)
-
-ppratomPoly :: Poly -> Doc ann
-ppratomPoly t@TmTApp{} = parens (pretty t)
-ppratomPoly t@TmTAbs{} = parens (pretty t)
-ppratomPoly t = pretty t
 
 -- | Pretty types
 instance Pretty TyVar where
