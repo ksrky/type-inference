@@ -20,11 +20,12 @@ import Syntax
 '.'			{ TokDot }
 '->'			{ TokArrow }
 ':'			{ TokColon }
-'∀'			{ TokAll }
 '('			{ TokLParen }
 ')'			{ TokRParen }
 '['			{ TokLBrack }
 ']'			{ TokRBrack }
+'{'			{ TokLBrace }
+'}'			{ TokRBrace }
 
 Var             	{ TokName $$ }
 
@@ -35,9 +36,9 @@ Expr 	:: { (Term, Maybe Type) }
 	| Term						{ ($1, Nothing) }
 
 Term	:: { Term }
-        : '\\' Var ':' Type '->' Term			{ TmAbs $2 (Just $4) $6 }
-	| '\\' Var '->' Term				{ TmAbs $2 Nothing $4 }
-        | '/\\' TyVars '->' Term			{ TmTAbs $2 $4 }
+        : '\\' '(' Var ':' Type ')' '.' Term		{ TmAbs $3 (Just $5) $8 }
+	| '\\' Var '.' Term				{ TmAbs $2 Nothing $4 }
+        | '/\\' TyVars '.' Term			        { TmTAbs $2 $4 }
 	| Term2						{ $1 }
 
 Term2	:: { Term }
@@ -55,7 +56,7 @@ Lit	:: { Lit }
 
 Type	:: { Type }
 	: Type1 '->' Type				{ TyFun $1 $3 }
-	| '∀' TyVars '.' Type				{ TyAll $2 $4 }
+	| '{' TyVars '}' Type				{ TyAll $2 $4 }
 	| Type1						{ $1 }
 
 Type1	:: { Type }

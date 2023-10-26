@@ -83,7 +83,7 @@ tcRho (TmTAbs tvs body) exp_ty = do
         (body', sigma) <- extendTyvarEnv tvs $ inferSigma body
         ftvs <- mapM (const newTyVar) tvs
         coer <- instSigma sigma exp_ty
-        return $ coer `appCoer` TmTApp (TmTAbs tvs body') ftvs
+        return $ coer `appCoer` substTerm tvs ftvs body'
 
 inferSigma :: (MonadIO m, MonadFail m) => Term -> Tc m (Term, Sigma)
 inferSigma (TmTAbs tvs body) = do

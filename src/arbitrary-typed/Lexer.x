@@ -24,6 +24,8 @@ $white+                 ;
 \)                      { \_ -> TokRParen }
 \[                      { \_ -> TokLBrack }
 \]                      { \_ -> TokRBrack }
+\{                      { \_ -> TokLBrace }
+\}                      { \_ -> TokRBrace }
 
 @id                     { \s -> TokName s }
 
@@ -40,6 +42,8 @@ data Token
     | TokRParen
     | TokLBrack
     | TokRBrack
+    | TokLBrace
+    | TokRBrace
     | TokName String
     deriving (Eq, Show)
 }

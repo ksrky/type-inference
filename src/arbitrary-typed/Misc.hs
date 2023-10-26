@@ -1,6 +1,5 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GADTs #-}
-{-# LANGUAGE LambdaCase #-}
 
 module Misc where
 
@@ -66,8 +65,8 @@ freeTvs (TyFun arg res) = freeTvs arg `S.union` freeTvs res
 freeTvs (TyAll tvs ty) = S.fromList tvs `S.union` freeTvs ty
 freeTvs TyMeta{} = S.empty
 
-substTvs :: [TyVar] -> [Type] -> Type -> Type
-substTvs tvs tys ty = let s = M.fromList (zip tvs tys) in apply s ty
+substType :: [TyVar] -> [Type] -> Type -> Type
+substType tvs tys ty = apply (M.fromList (zip tvs tys)) ty
     where
         apply :: M.Map TyVar Tau -> Type -> Type
         apply s ty@(TyVar tv) = M.findWithDefault ty tv s
@@ -75,3 +74,14 @@ substTvs tvs tys ty = let s = M.fromList (zip tvs tys) in apply s ty
         apply s (TyFun ty1 ty2) = TyFun (apply s ty1) (apply s ty2)
         apply s (TyAll tvs t) = TyAll tvs $ apply (foldr M.delete s tvs) t
         apply _ ty@TyMeta{} = ty
+
+substTerm :: [TyVar] -> [Type] -> Term -> Term
+substTerm tvs tys t = apply (M.fromList (zip tvs tys)) t
+    where
+        apply :: M.Map TyVar Tau -> Term -> Term
+        apply _ t@TmLit{} = t
+        apply _ t@TmVar{} = t
+        apply s (TmApp t1 t2) = TmApp (apply s t1) (apply s t2)
+        apply s (TmAbs var mbty t) = TmAbs var (substType tvs tys <$> mbty) (apply s t)
+        apply s (TmTApp t tys') = TmTApp (apply s t) (substType tvs tys <$> tys')
+        apply s (TmTAbs tvs' t) = TmTAbs tvs' $ apply (foldr M.delete s tvs') t

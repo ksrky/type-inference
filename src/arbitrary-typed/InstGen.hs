@@ -13,13 +13,13 @@ import Syntax
 instantiate :: (MonadIO m) => Sigma -> Tc m (Coercion, Rho)
 instantiate (TyAll tvs rho) = do
         tys <- mapM (const newTyVar) tvs
-        return (instTrans tys, substTvs tvs tys rho)
+        return (instTrans tys, substType tvs tys rho)
 instantiate ty = return (Id, ty)
 
 skolemise :: (MonadIO m) => Sigma -> Tc m (Coercion, [TyVar], Rho)
 skolemise (TyAll tvs rho) = do
         sks1 <- mapM newSkolemTyVar tvs
-        (coer, sks2, rho') <- skolemise (substTvs tvs (map TyVar sks1) rho)
+        (coer, sks2, rho') <- skolemise (substType tvs (map TyVar sks1) rho)
         return (prpolyTrans sks1 coer, sks1 ++ sks2, rho')
 skolemise (TyFun arg_ty res_ty) = do
         (coer, sks, res_ty') <- skolemise res_ty
@@ -50,8 +50,8 @@ allBinders =
 -- | Application
 apply :: (MonadFail m) => Sigma -> [Tau] -> m Sigma
 apply sigma [] = return sigma
-apply (TyAll tvs rho) tys | length tvs == length tys = return (substTvs tvs tys rho)
+apply (TyAll tvs rho) tys | length tvs == length tys = return (substType tvs tys rho)
 apply (TyAll tvs rho) tys | length tvs > length tys = do
         let (tvs1, tvs2) = splitAt (length tys) tvs
-        return $ TyAll tvs2 (substTvs tvs1 tys rho)
+        return $ TyAll tvs2 (substType tvs1 tys rho)
 apply _ _ = fail "too much type application"
