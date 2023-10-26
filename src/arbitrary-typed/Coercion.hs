@@ -34,6 +34,7 @@ prfunTrans tvs arg_ty coer =
          in Fn $ TmAbs "_" (Just arg_ty) . coer'
 
 prpolyTrans :: [TyVar] -> Coercion -> Coercion
+-- prpolyTrans _ Id = Id
 prpolyTrans [] coer = coer
 prpolyTrans tvs coer = Fn $ \e -> TmTAbs tvs (coer `appCoer` TmTApp e (map TyVar tvs))
 

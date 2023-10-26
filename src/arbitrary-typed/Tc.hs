@@ -32,12 +32,12 @@ inferType t =
 data Expected a = Infer (IORef a) | Check a
 
 checkRho :: (MonadIO m, MonadFail m) => Term -> Rho -> Tc m Term
-checkRho t ty = tcRho t (Check ty) >>= zonkTerm
+checkRho t ty = tcRho t (Check ty)
 
 inferRho :: (MonadIO m, MonadFail m) => Term -> Tc m (Term, Rho)
 inferRho t = do
         ref <- newTcRef (error "inferRho: empty result")
-        t' <- tcRho t (Infer ref) >>= zonkTerm
+        t' <- tcRho t (Infer ref)
         (t',) <$> readTcRef ref
 
 tcRho :: (MonadIO m, MonadFail m) => Term -> Expected Rho -> Tc m Term
@@ -96,8 +96,9 @@ inferSigma t = do
 
 checkSigma :: (MonadIO m, MonadFail m) => Term -> Sigma -> Tc m Term
 checkSigma (TmTAbs tvs body) sigma = do
-        (body', sigma') <- extendTyvarEnv tvs $ inferSigma body
-        coer <- subsCheck sigma (TyAll tvs sigma')
+        (body', body_ty) <- extendTyvarEnv tvs $ inferSigma body
+        sigma' <- apply sigma (map TyVar tvs)
+        coer <- subsCheck sigma' body_ty
         return $ coer `appCoer` TmTAbs tvs body'
 checkSigma t sigma = do
         (coer, sktvs, rho) <- skolemise sigma

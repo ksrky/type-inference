@@ -43,9 +43,7 @@ quantify tvs rho = do
         return (new_bndrs, TyAll new_bndrs rho')
 
 allBinders :: [TyVar]
-allBinders =
-        [BoundTv [x] | x <- ['a' .. 'z']]
-                ++ [BoundTv (x : show i) | i <- [1 :: Integer ..], x <- ['a' .. 'z']]
+allBinders = [BoundTv ('_' : show i) | i <- [1 :: Integer ..]]
 
 -- | Application
 apply :: (MonadFail m) => Sigma -> [Tau] -> m Sigma

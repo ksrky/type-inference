@@ -44,15 +44,15 @@ process inp =
 
 tests :: [String]
 tests =
-        [ "\\x -> x"
-        , "\\f -> \\x -> f x"
+        [ "\\x. x"
+        , "\\f. \\x. f x"
         , -- Arbitrary-rank
-          "\\x -> x : ∀a. a -> a"
-        , "\\f -> \\x -> f x : ∀a b. (a -> b) -> a -> b"
-        , "\\f -> \\x -> f x : ∀a. ∀b. (a -> b) -> a -> b"
-        , "\\x -> x : (∀a. a -> a) -> ∀a. a -> a"
-        , "\\x -> x : ∀b. (∀a. a -> a) -> b -> b"
-        , "\\x -> x : (∀a. a -> a) -> ∀b. b -> b"
-        , "\\f -> f () : (∀a. a -> a) -> ()"
-        , "\\f -> f () : ∀a. (a -> a) -> ()"
+          "\\x. x : {a} a -> a"
+        , "\\f. \\x. f x : {a b} (a -> b) -> a -> b"
+        , "\\f. \\x. f x : {a b} (a -> b) -> a -> b"
+        , "\\x. x : ({a} a -> a) -> {a} a -> a"
+        , "\\x. x : {b} ({a} a -> a) -> b -> b"
+        , "\\x. x : ({a} a -> a) -> {b} b -> b"
+        , "\\f. f () : ({a} a -> a) -> ()"
+        , "\\f. f () : {a} (a -> a) -> ()"
         ]
