@@ -13,6 +13,8 @@ tokens :-
 
 $white+                 ;
 
+let                     { \_ -> TokLet }
+in                      { \_ -> TokIn }
 \=                      { \_ -> TokEq }
 \\                      { \_ -> TokBack }
 \/\\                    { \_ -> TokBiglam }
@@ -31,7 +33,9 @@ $white+                 ;
 
 {
 data Token
-    = TokEq
+    = TokLet
+    | TokIn
+    | TokEq
     | TokBack
     | TokBiglam
     | TokDot

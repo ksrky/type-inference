@@ -14,6 +14,8 @@ import Syntax
 
 %token
 
+'let'			{ TokLet }
+'in'			{ TokIn }
 '='			{ TokEq }
 '\\'			{ TokBack }
 '/\\'                   { TokBiglam }
@@ -39,6 +41,8 @@ Term	:: { Term }
         : '\\' '(' Var ':' Type ')' '.' Term		{ TmAbs $3 (Just $5) $8 }
 	| '\\' Var '.' Term				{ TmAbs $2 Nothing $4 }
         | '/\\' TyVars '.' Term			        { TmTAbs $2 $4 }
+	| 'let' '(' Var ':' Type ')' '=' Term 'in' Term	{ TmLet $3 (Just $5) $8 $10 }
+	| 'let' Var '=' Term 'in' Term			{ TmLet $2 Nothing $4 $6 }
 	| Term2						{ $1 }
 
 Term2	:: { Term }

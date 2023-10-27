@@ -37,7 +37,9 @@ generalize ty = do
 quantify :: (MonadIO m) => [MetaTv] -> Rho -> Tc m ([TyVar], Sigma)
 quantify [] rho = return ([], rho)
 quantify tvs rho = do
-        let new_bndrs = take (length tvs) allBinders
+        new_bndrs <- forM tvs $ \_ -> do
+                u <- newUniq
+                return $ BoundTv ("_" ++ show u)
         zipWithM_ writeMetaTv tvs (map TyVar new_bndrs)
         rho' <- zonkType rho
         return (new_bndrs, TyAll new_bndrs rho')

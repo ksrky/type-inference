@@ -37,6 +37,8 @@ zonkTerm (TmApp fun arg) = TmApp <$> zonkTerm fun <*> zonkTerm arg
 zonkTerm (TmAbs var mbty body) = TmAbs var <$> zonkType `traverse` mbty <*> zonkTerm body
 zonkTerm (TmTApp body ty_args) = TmTApp body <$> mapM zonkType ty_args
 zonkTerm (TmTAbs ty_vars body) = TmTAbs ty_vars <$> zonkTerm body
+zonkTerm (TmLet var mbty bind body) =
+        TmLet var <$> zonkType `traverse` mbty <*> zonkTerm bind <*> zonkTerm body
 
 getEnvTypes :: (Monad m) => Tc m [Type]
 getEnvTypes = asks $ M.elems . tc_varenv
@@ -85,3 +87,5 @@ substTerm tvs tys t = apply (M.fromList (zip tvs tys)) t
         apply s (TmAbs var mbty t) = TmAbs var (substType tvs tys <$> mbty) (apply s t)
         apply s (TmTApp t tys') = TmTApp (apply s t) (substType tvs tys <$> tys')
         apply s (TmTAbs tvs' t) = TmTAbs tvs' $ apply (foldr M.delete s tvs') t
+        apply s (TmLet var mbty bind body) =
+                TmLet var (substType tvs tys <$> mbty) (apply s bind) (apply s body)

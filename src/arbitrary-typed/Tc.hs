@@ -64,10 +64,10 @@ tcRho (TmAbs var Nothing body) (Infer ref) = do
         (body', body_ty) <- extendVarEnv var arg_ty (inferSigma body)
         writeTcRef ref (TyFun arg_ty body_ty)
         return $ TmAbs var (Just arg_ty) body'
-tcRho (TmAbs var (Just arg_ty) body) (Infer ref) = do
-        (body', body_ty) <- extendVarEnv var arg_ty (inferSigma body)
-        writeTcRef ref (TyFun arg_ty body_ty)
-        return $ TmAbs var (Just arg_ty) body'
+tcRho (TmAbs var (Just var_ty) body) (Infer ref) = do
+        (body', body_ty) <- extendVarEnv var var_ty (inferSigma body)
+        writeTcRef ref (TyFun var_ty body_ty)
+        return $ TmAbs var (Just var_ty) body'
 tcRho (TmTApp body tys) (Check rho) = do
         (body', sigma) <- inferSigma body
         sigma' <- apply sigma tys
@@ -84,6 +84,14 @@ tcRho (TmTAbs tvs body) exp_ty = do
         ftvs <- mapM (const newTyVar) tvs
         coer <- instSigma sigma exp_ty
         return $ coer `appCoer` substTerm tvs ftvs body'
+tcRho (TmLet var Nothing bind body) exp_ty = do
+        (bind', bind_ty) <- inferSigma bind
+        body' <- extendVarEnv var bind_ty $ tcRho body exp_ty
+        return $ TmLet var (Just bind_ty) bind' body'
+tcRho (TmLet var (Just var_ty) bind body) exp_ty = do
+        bind' <- checkSigma bind var_ty
+        body' <- extendVarEnv var var_ty $ tcRho body exp_ty
+        return $ TmLet var (Just var_ty) bind' body'
 
 inferSigma :: (MonadIO m, MonadFail m) => Term -> Tc m (Term, Sigma)
 inferSigma (TmTAbs tvs body) = do
